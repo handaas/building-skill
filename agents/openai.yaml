@@ -1,0 +1,4 @@
+interface:
+  display_name: "楼宇大数据报告"
+  short_description: "基于 HandaaS 楼宇大数据 MCP，生成企业办公地址详情 / 办公地址分布统计 / 楼宇查询明细的专业 HTML / Markdown / JSON 报告。"
+  default_prompt: "使用 $building-report 生成「企业名称」的楼宇大数据报告：自动补全企业全称，调用楼宇 MCP 工具，产出 HTML + Markdown + JSON 三件套。"
