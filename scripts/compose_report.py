@@ -21,9 +21,9 @@ import datetime as dt
 import json
 import pathlib
 import sys
-from typing import Any, Dict, List, Mapping, Optional
+from typing import Any, Dict, List, Mapping, Optional, Sequence
 
-from common import REPORT_BANNER, REPORT_TYPE, json_dumps, load_json_file, print_json
+from common import REPORT_BANNER, REPORT_TYPE, attach_pagination, call_tool_once, collect_detail_pages, json_dumps, load_json_file, paid_call_scope, print_json
 import mcp_client
 from render_report import render_html, render_markdown, html_to_pdf
 
@@ -34,6 +34,7 @@ T_FUZZY = "building_bigdata_fuzzy_search"
 T_OFFICE_DETAILS = "building_bigdata_office_address_details"
 T_OFFICE_STATS = "building_bigdata_office_address_stats"
 T_BUILDING_QUERY = "building_bigdata_building_query"
+T_BUILDING_BASIC = "building_bigdata_building_basic_info"
 
 
 # --------------------------------------------------------------------------- #
@@ -42,37 +43,71 @@ T_BUILDING_QUERY = "building_bigdata_building_query"
 
 
 def _is_api_error(value: Any) -> bool:
-    """Detect MCP API error responses (not empty data, but actual failures like 405)."""
+    """Return True for failed MCP/tool envelopes, never for a successful empty result."""
     if value is None:
         return False
     if isinstance(value, str):
-        return any(s in value for s in ("接口调用失败", "查询失败", "状态码：4", "状态码：5"))
+        text = value.strip().lower()
+        return any(marker in text for marker in (
+            "接口调用失败", "查询失败", "状态码：4", "状态码：5",
+            "error executing tool", "validation error", "密钥错误", "鉴权失败",
+        ))
+    if isinstance(value, list):
+        return any(_is_api_error(item) for item in value)
     if isinstance(value, dict):
-        for v in value.values():
-            if isinstance(v, str) and any(s in v for s in ("接口调用失败", "查询失败", "状态码：4", "状态码：5")):
-                return True
+        if value.get("isError") is True or value.get("is_error") is True or value.get("success") is False:
+            return True
+        if value.get("_error") not in (None, "", False) or value.get("error") not in (None, "", False):
+            return True
+        if set(value) <= {"text", "code", "status", "message", "msg"} and value.get("text"):
+            text = str(value.get("text")).strip()
+            if "查询数据为空" in text:
+                return False
+            return True
+        return any(
+            _is_api_error(value.get(key))
+            for key in ("text", "message", "msg", "detail", "content")
+            if key in value
+        )
     return False
 
+
 def _first_list(value: Any) -> List[Any]:
-    if isinstance(value, list):
-        return value
-    if isinstance(value, dict):
-        if _is_api_error(value):
-            return []
-        for key in ("resultList", "list", "items", "data"):
-            if isinstance(value.get(key), list):
-                return value[key]
-    if value in (None, "", {}):
+    """Extract business records without turning envelopes into phantom rows."""
+    if _is_api_error(value):
         return []
-    return [value]
+    if isinstance(value, list):
+        cleaned: List[Any] = []
+        for item in value:
+            if _is_api_error(item) or item in (None, "", {}, []):
+                continue
+            if isinstance(item, dict):
+                business_values = [v for k, v in item.items() if k not in {"total", "count", "code", "message", "msg"}]
+                if business_values and all(v in (None, "", "-", [], {}) for v in business_values):
+                    continue
+            cleaned.append(item)
+        return cleaned
+    if isinstance(value, dict):
+        for key in ("resultList", "storeList", "list", "items", "data", "records"):
+            nested = value.get(key)
+            if isinstance(nested, list):
+                return nested
+        envelope_keys = {
+            "text", "message", "msg", "code", "status", "success", "total", "count",
+            "pageIndex", "pageSize", "isError", "is_error", "content", "structuredContent",
+            "structured_content", "_error", "error",
+        }
+        if set(value) <= envelope_keys:
+            return []
+        if value:
+            return [value]
+    return []
 
 
 def _first_record(value: Any) -> Dict[str, Any]:
     for record in _first_list(value):
-        if isinstance(record, dict):
+        if isinstance(record, dict) and not _is_api_error(record):
             return record
-    if isinstance(value, dict):
-        return value
     return {}
 
 
@@ -98,13 +133,13 @@ def _int(value: Any) -> Optional[int]:
 
 def _safe_call(tool: str, arguments: Dict[str, Any]) -> Any:
     try:
-        result = mcp_client.call_tool(tool, arguments)
+        result = call_tool_once(mcp_client.call_tool, tool, arguments)
         # Detect API error responses (405, etc.) and return error marker
         if _is_api_error(result):
             return {"_error": "API错误", "_raw": result}
         return result
-    except Exception as exc:
-        return {"_error": str(exc)}
+    except Exception:
+        return {"_error": "调用失败"}
 
 
 def _safe_total(payload: Any) -> Any:
@@ -132,6 +167,11 @@ def _format_capital(val: Any, coin: str = "") -> str:
         return _text(val) if val else "-"
 
 
+def _failed_tools(sources: Mapping[str, Any]) -> List[str]:
+    """Return only safe tool/dimension labels for failed calls."""
+    return [name for name, payload in sources.items() if _is_api_error(payload)]
+
+
 # --------------------------------------------------------------------------- #
 # Resolution
 # --------------------------------------------------------------------------- #
@@ -143,6 +183,15 @@ def resolve_enterprise_name(raw: str) -> Dict[str, Any]:
     if any(suffix in raw for suffix in ("公司", "集团", "有限", "院", "厂", "中心", "事务所", "合作社", "合伙")):
         return {"keyword": raw, "enterprise": raw, "resolved": True, "reason": "视为企业全称"}
     fuzzy = _safe_call(T_FUZZY, {"matchKeyword": raw, "pageSize": 1})
+    fuzzy_total = _int(_safe_total(fuzzy))
+    if fuzzy_total is not None and fuzzy_total > 1:
+        return {
+            "keyword": raw,
+            "enterprise": raw,
+            "resolved": False,
+            "reason": f"模糊查询返回多候选（{fuzzy_total}），未静默选择首条",
+            "fuzzy_total": fuzzy_total,
+        }
     record = _first_record(fuzzy)
     name = str(record.get("name") or "").strip()
     if name:
@@ -183,16 +232,33 @@ def build_subject(raw: str, resolved: Mapping[str, Any], keyword_type: str) -> D
 
 
 def build_caliber(subject: Mapping[str, Any]) -> Dict[str, Any]:
+    products = [item["name"] for item in _requested_product_rows(subject)]
     return {
         "match_target": subject.get("enterprise") or subject.get("match_raw"),
         "match_type": f"楼宇/办公地址数据按企业主体匹配（keywordType={subject.get('keywordType', 'name')}）；楼宇查询支持按地区/楼宇类型/关键词检索",
-        "data_scope": "企业办公地址详情、办公地址分布统计（城市/省份/入驻方式/来源）、楼宇查询明细",
-        "products": ["企业办公地址详情", "企业办公地址统计", "楼宇查询"],
-        "limit": "数据来自楼宇/办公公开数据源；少量字段可能存在更新延迟。",
+        "data_scope": "、".join(products),
+        "products": products,
+        "limit": "地址与入驻信息仅为公开数据线索，可能存在更新延迟；不证明楼宇/房产所有权、持续租赁、实际办公或人员驻场。地区筛选明细不得与全国统计交叉计算比率。",
     }
 
 
-def build_metrics(details: Any, stats: Any, building: Any, profile: Optional[Mapping[str, Any]] = None) -> List[Dict[str, Any]]:
+def _requested_product_rows(subject: Mapping[str, Any]) -> List[Dict[str, str]]:
+    """List resolver and analysis products actually requested for this scope."""
+    rows = [{"name": "企业模糊查询", "product_id": "675cea1f0e009a9ea37edaa1"}]
+    if subject.get("blocked_reason"):
+        return rows
+    rows.extend([
+        {"name": "企业办公地址详情", "product_id": "6786528b1677add9f934358f"},
+        {"name": "企业办公地址统计", "product_id": "6786528b1677add9f934359d"},
+    ])
+    if subject.get("building_query_scope") == "explicit_estate_id_association":
+        rows.append({"name": "楼宇基础信息", "product_id": "6786528b1677add9f93435b4"})
+    else:
+        rows.append({"name": "楼宇查询", "product_id": "6786528b1677add9f93435db"})
+    return rows
+
+
+def build_metrics(details: Any, stats: Any, building: Any, profile: Optional[Mapping[str, Any]] = None, *, filtered: bool = False, market_building_query: bool = False) -> List[Dict[str, Any]]:
     metrics: List[Dict[str, Any]] = []
     d_total = _int(_safe_total(details)) if isinstance(details, dict) else None
     s = stats if isinstance(stats, dict) else {}
@@ -202,9 +268,9 @@ def build_metrics(details: Any, stats: Any, building: Any, profile: Optional[Map
 
     # --- Office address metrics ---
     metrics.append({"label": "办公地址总数", "value": (_text(d_total) if d_total is not None else "-"), "hint": "企业办公地址总数"})
-    if city_count and d_total:
+    if not filtered and city_count and d_total:
         metrics.append({"label": "覆盖城市数", "value": _text(city_count), "hint": "办公地址所涉城市数", "delta": f"地均 {d_total / city_count:.1f} 个/城"})
-    elif city_count:
+    elif not filtered and city_count:
         metrics.append({"label": "覆盖城市数", "value": _text(city_count), "hint": "办公地址所涉城市数"})
 
     # Province count (derived)
@@ -213,15 +279,15 @@ def build_metrics(details: Any, stats: Any, building: Any, profile: Optional[Map
         metrics.append({"label": "覆盖省份数", "value": str(len(province_rows)), "hint": "办公地址所涉省份数"})
 
     # CR3 city concentration
-    stat_rows = _office_stat_rows(stats)
+    stat_rows = [] if filtered else _office_stat_rows(stats)
     if stat_rows:
         conc = _concentration(stat_rows, "城市", "办公地址数量", 3)
         if conc:
             metrics.append({"label": "CR3城市集中度", "value": f"{conc['cr']:.0f}%", "hint": f"前3城市合计，TOP1：{conc['top']}"})
 
     # --- Building metrics ---
-    if b_total is not None:
-        metrics.append({"label": "楼宇库存量", "value": _text(b_total), "hint": "查询命中楼盘数"})
+    if b_total is not None and b_total > 0:
+        metrics.append({"label": "筛选楼宇命中量" if market_building_query else "明确ID关联楼宇数", "value": _text(b_total), "hint": "独立楼宇筛选结果，不代表企业关联" if market_building_query else "仅统计办公地址明细明确返回楼宇ID的记录"})
 
     # --- Enterprise profile metrics ---
     if profile:
@@ -294,6 +360,7 @@ def _office_detail_rows(details: Any) -> List[Dict[str, Any]]:
             "所在城市": _address_city(addr) or "-",
             "所在区域": _address_district(addr) or "-",
             "所在楼宇": _text(item.get("estateName")) or "-",
+            "楼宇ID": _text(item.get("estateId")) or "-",
             "入驻方式": _text(item.get("officeSettleType")) or "-",
             "地址来源": _SOURCE_MAP.get(_text(item.get("officeSourceType")), _text(item.get("officeSourceType"))) or "-",
         })
@@ -322,11 +389,13 @@ def _building_rows(building: Any) -> List[Dict[str, Any]]:
             "楼宇类型": _text(item.get("estatePropertyType")) or "-",
             "楼宇地址": _address_value(item.get("estateAddress")) or "-",
             "入驻企业数": _text(item.get("estateEnterpriseCount") or "-"),
+            "楼宇ID": _text(item.get("estateId")) or "-",
+            "关联依据": _text(item.get("associationEvidence")) or "-",
         })
     return out
 
 
-def _building_type_rows(building_rows: List[Mapping[str, Any]]) -> List[Dict[str, Any]]:
+def _building_type_rows(building_rows: Sequence[Mapping[str, Any]]) -> List[Dict[str, Any]]:
     """Aggregate building_query rows by 楼宇类型 into a {类型,数量} distribution."""
     counts: Dict[str, int] = {}
     for r in building_rows:
@@ -373,7 +442,7 @@ def _office_source_type_rows(details: Any) -> List[Dict[str, Any]]:
     return [{"地址来源": k, "数量": str(v)} for k, v in sorted(counts.items(), key=lambda kv: kv[1], reverse=True)]
 
 
-def _concentration(rows: List[Mapping[str, Any]], name_key: str, value_key: str, top_n: int = 3) -> Dict[str, Any]:
+def _concentration(rows: Sequence[Mapping[str, Any]], name_key: str, value_key: str, top_n: int = 3) -> Dict[str, Any]:
     """Compute top-N concentration (CRn) and dominant category from {name,count} rows."""
     items = []
     for r in rows:
@@ -389,7 +458,7 @@ def _concentration(rows: List[Mapping[str, Any]], name_key: str, value_key: str,
     return {"top": items[0][0], "top_share": items[0][1] / total * 100, "cr": cr, "total": total, "n": len(items)}
 
 
-def build_core_analysis(details: Any, stats: Any, building: Any) -> Dict[str, Any]:
+def build_core_analysis(details: Any, stats: Any, building: Any, *, filtered: bool = False, market_building_query: bool = False) -> Dict[str, Any]:
     detail_rows = _office_detail_rows(details)
     stat_rows = _office_stat_rows(stats)
     building_rows = _building_rows(building)
@@ -400,13 +469,13 @@ def build_core_analysis(details: Any, stats: Any, building: Any) -> Dict[str, An
 
     sections = [
         {"key": "office_details", "title": "办公地址详情", "kind": "table",
-         "note": f"共 {_safe_total(details) if isinstance(details, dict) and _safe_total(details) is not None else '若干'} 条办公地址记录，展示前若干条",
-         "columns": [("办公地址", "办公地址"), ("所在城市", "所在城市"), ("所在区域", "所在区域"), ("所在楼宇", "所在楼宇"), ("入驻方式", "入驻方式"), ("地址来源", "地址来源")]},
+         "note": f"展示 {len(detail_rows)} 条办公地址记录" + (f"；上游总量 {_safe_total(details)}" if _safe_total(details) is not None else "；上游未返回总量"),
+         "columns": [("办公地址", "办公地址"), ("所在城市", "所在城市"), ("所在区域", "所在区域"), ("所在楼宇", "所在楼宇"), ("楼宇ID", "楼宇ID"), ("入驻方式", "入驻方式"), ("地址来源", "地址来源")]},
         {"key": "office_province", "title": "办公地址省份分布", "kind": "bar",
          "note": "按办公地址所在省份聚合办公点数量",
          "chart": {"name": "省份", "value": "办公点数", "orient": "h"},
          "columns": [("省份", "省份"), ("办公点数", "办公点数")]},
-        {"key": "office_stats", "title": "办公地址城市分布", "kind": "donut", "note": "按城市统计办公地址数量",
+        {"key": "office_stats", "title": "办公地址城市分布（全国口径）", "kind": "donut", "note": "企业全国办公地址统计；不与地区筛选后的明细交叉计算比率" if filtered else "按企业全国办公地址统计城市分布",
          "chart": {"name": "城市", "value": "办公地址数量"},
          "columns": [("城市", "城市"), ("办公地址数量", "办公地址数量")]},
         {"key": "settle_type", "title": "入驻方式分布", "kind": "donut", "note": "按入驻方式（工商注册入驻 / 办公地址入驻）统计",
@@ -415,9 +484,9 @@ def build_core_analysis(details: Any, stats: Any, building: Any) -> Dict[str, An
         {"key": "source_type", "title": "地址来源分布", "kind": "donut", "note": "按地址来源类型（工商登记 / 办公地址 / 招聘信息）统计",
          "chart": {"name": "地址来源", "value": "数量"},
          "columns": [("地址来源", "地址来源"), ("数量", "数量")]},
-        {"key": "building_query", "title": "楼宇查询明细", "kind": "table",
-         "note": f"共 {_safe_total(building) if isinstance(building, dict) and _safe_total(building) is not None else '若干'} 个楼盘，展示前 N 个",
-         "columns": [("楼宇名称", "楼宇名称"), ("楼宇类型", "楼宇类型"), ("楼宇地址", "楼宇地址"), ("入驻企业数", "入驻企业数")]},
+        {"key": "building_query", "title": "独立楼宇筛选明细" if market_building_query else "明确ID关联楼宇明细", "kind": "table",
+         "note": ("独立地区/类型筛选，不代表与查询企业关联；" if market_building_query else "仅由办公地址明细明确返回的楼宇ID关联；") + f"展示 {len(building_rows)} 个楼盘" + (f"；上游总量 {_safe_total(building)}" if _safe_total(building) is not None else "；上游未返回总量"),
+         "columns": [("楼宇名称", "楼宇名称"), ("楼宇ID", "楼宇ID"), ("楼宇类型", "楼宇类型"), ("楼宇地址", "楼宇地址"), ("入驻企业数", "入驻企业数"), ("关联依据", "关联依据")]},
         {"key": "building_type", "title": "楼宇类型分布", "kind": "bar", "note": "按楼宇类型聚合命中楼盘数量",
          "chart": {"name": "楼宇类型", "value": "数量", "orient": "h"},
          "columns": [("楼宇类型", "楼宇类型"), ("数量", "数量")]},
@@ -432,6 +501,7 @@ def build_core_analysis(details: Any, stats: Any, building: Any) -> Dict[str, An
         "source_type": source_type_rows,
         "building_query": building_rows,
         "building_type": building_type_rows,
+        "scope_note": "地区筛选仅作用于办公地址明细与楼宇查询；办公地址城市统计为全国口径。" if filtered else "办公地址明细与统计均按企业主体查询。",
     }
 
 
@@ -447,7 +517,7 @@ def build_records(core: Mapping[str, Any]) -> List[Dict[str, Any]]:
     return out[:20]
 
 
-def build_insights(subject: Mapping[str, Any], core: Mapping[str, Any], metrics: List[Mapping[str, Any]], profile: Optional[Mapping[str, Any]] = None) -> List[Dict[str, Any]]:
+def build_insights(subject: Mapping[str, Any], core: Mapping[str, Any], metrics: Sequence[Mapping[str, Any]], profile: Optional[Mapping[str, Any]] = None) -> List[Dict[str, Any]]:
     insights: List[Dict[str, Any]] = []
     metric_map = {m["label"]: str(m["value"]) for m in metrics}
     addr_total = metric_map.get("办公地址总数")
@@ -471,7 +541,7 @@ def build_insights(subject: Mapping[str, Any], core: Mapping[str, Any], metrics:
         insights.append({
             "feature": "办公地址规模",
             "evidence": f"企业办公地址总数 {addr_total}{extra}。",
-            "interpretation": "办公地址总数反映企业实际经营网络的覆盖密度；多地址常见于分支机构、研发中心或区域销售据点，地均密度越高意味着单城集中度越深。",
+            "interpretation": "办公地址记录仅是公开来源线索，可用于后续核验；不能据此推断资产所有权、持续入驻、人员规模或实际经营状态。",
         })
 
     # 2. City concentration
@@ -479,10 +549,11 @@ def build_insights(subject: Mapping[str, Any], core: Mapping[str, Any], metrics:
     if stat_rows:
         conc = _concentration(stat_rows, "城市", "办公地址数量", 3)
         if conc:
+            nationwide = "地区筛选下仍为全国统计口径；" if "地区筛选" in str(core.get("scope_note")) else ""
             insights.append({
-                "feature": "城市分布集中度",
-                "evidence": f"“{conc['top']}”办公地址占比约 {conc['top_share']:.0f}%，前 3 城市合计 {conc['cr']:.0f}%（CR3）。",
-                "interpretation": "城市集中度反映区域布局战略：CR3 偏高意味着以总部/核心城市为主、便于集中管控；CR3 偏低则代表分散布局、利于多区域市场渗透。",
+                "feature": "全国口径城市分布集中度",
+                "evidence": f"{nationwide}“{conc['top']}”公开办公地址统计占比约 {conc['top_share']:.0f}%，全国前 3 城市合计 {conc['cr']:.0f}%（CR3）。",
+                "interpretation": "该集中度只描述公开地址统计的全国分布，不与地区筛选明细合并，也不证明实际经营覆盖或地址所有权。",
             })
 
     # 3. Province concentration
@@ -507,7 +578,7 @@ def build_insights(subject: Mapping[str, Any], core: Mapping[str, Any], metrics:
             insights.append({
                 "feature": "入驻方式结构",
                 "evidence": f"“{top_settle}”占比约 {top_pct:.0f}%（{top_count}/{total_settle}）。",
-                "interpretation": "工商注册入驻意味着该地址为法定注册地，办公地址入驻则为实际经营场所；两者比例反映企业的注册地与实际办公地的一致性。",
+                "interpretation": "入驻方式是公开数据源的分类标签，仅用于线索分组；不能单独证明当前实际占用或持续经营。",
             })
 
     # 5. Source type structure
@@ -531,10 +602,12 @@ def build_insights(subject: Mapping[str, Any], core: Mapping[str, Any], metrics:
             ent_vals = [float(str(r.get("入驻企业数", "0")).replace(",", "")) for r in building_rows if r.get("入驻企业数") and str(r.get("入驻企业数")).replace(",", "").replace(".", "").isdigit()]
             if ent_vals:
                 avg_ent = sum(ent_vals) / len(ent_vals)
+                is_associated = any(row.get("关联依据") not in (None, "", "-") for row in building_rows)
                 insights.append({
-                    "feature": "楼宇承载密度",
+                    "feature": "关联楼宇公开入驻量" if is_associated else "楼宇承载密度",
                     "evidence": f"命中 {len(building_rows)} 个楼盘，单楼入驻企业均值约 {avg_ent:.0f} 家。",
-                    "interpretation": "楼宇入驻密度反映目标区域写字楼/产业园的成熟度与集聚效应，是选址与招商评估供给质量的关键参考。",
+                    "interpretation": ("这些楼宇均由办公地址明细中的明确楼宇ID关联；入驻企业数仅为楼宇公开统计，不证明查询企业拥有该楼宇。"
+                                       if is_associated else "楼宇入驻密度仅描述当前筛选结果，可作为区域供给线索，不能外推未返回楼宇。"),
                 })
         except (TypeError, ValueError):
             pass
@@ -585,7 +658,7 @@ def build_insights(subject: Mapping[str, Any], core: Mapping[str, Any], metrics:
     return insights
 
 
-def build_abstract(subject: Mapping[str, Any], core: Mapping[str, Any], metrics: List[Mapping[str, Any]], profile: Optional[Mapping[str, Any]] = None) -> str:
+def build_abstract(subject: Mapping[str, Any], core: Mapping[str, Any], metrics: Sequence[Mapping[str, Any]], profile: Optional[Mapping[str, Any]] = None) -> str:
     name = subject.get("enterprise") or subject.get("match_raw") or "目标企业"
     parts = [f"本报告以“{name}”为分析对象，基于楼宇/办公地址大数据，系统呈现企业办公地址详情、地址分布统计（城市/省份/入驻方式/来源）与楼宇查询明细。"]
     if metrics:
@@ -616,7 +689,7 @@ def build_dry_run_payload(raw: str, keyword_type: str) -> Dict[str, Any]:
 # Assembly
 # --------------------------------------------------------------------------- #
 
-def _assemble(subject: Mapping[str, Any], core: Mapping[str, Any], metrics: List[Mapping[str, Any]], *, dry_run: bool, profile: Optional[Mapping[str, Any]] = None) -> Dict[str, Any]:
+def _assemble(subject: Mapping[str, Any], core: Mapping[str, Any], metrics: Sequence[Mapping[str, Any]], *, dry_run: bool, profile: Optional[Mapping[str, Any]] = None, tool_errors: Optional[List[str]] = None) -> Dict[str, Any]:
     abstract = build_abstract(subject, core, metrics, profile)
     records = build_records(core)
     insights = build_insights(subject, core, metrics, profile)
@@ -636,6 +709,12 @@ def _assemble(subject: Mapping[str, Any], core: Mapping[str, Any], metrics: List
         "coverage_pct": round(populated / max(1, total_secs) * 100),
     }
     if populated == 0:
+        if subject.get("blocked_reason"):
+            abstract = f"主体未唯一解析，已停止后续数据产品调用：{subject.get('blocked_reason')}。本报告不包含主体画像或业务结论。"
+        elif tool_errors:
+            abstract = "本次查询未获得有效核心数据，且存在上游调用失败维度：" + "、".join(tool_errors) + "。不据此生成业务规模或市场结论。"
+        else:
+            abstract = "本次查询未返回有效核心数据；报告仅记录查询边界，不生成业务规模或市场结论。"
         print("⚠️ 质量门禁警告: 所有核心分析维度均无数据", file=sys.stderr)
     title = f"{subject.get('enterprise') or '目标企业'} 楼宇大数据报告"
     return {
@@ -645,7 +724,7 @@ def _assemble(subject: Mapping[str, Any], core: Mapping[str, Any], metrics: List
         "subject": dict(subject),
         "abstract": abstract,
         "summary": abstract,
-        "executive_summary": [item["interpretation"] for item in insights][:5] or [abstract[:120]],
+        "executive_summary": ((["主体解析受阻：" + str(subject.get("blocked_reason")) + "；已停止主体数据调用。"] if subject.get("blocked_reason") else (["数据缺口：" + "、".join(tool_errors or []) + "未成功返回，本报告仅呈现成功维度。"] if tool_errors else [])) + ([item["interpretation"] for item in insights][:5] or [abstract[:120]])),
         "metrics": list(metrics),
         "caliber": build_caliber(subject),
         "core_analysis": dict(core),
@@ -653,53 +732,49 @@ def _assemble(subject: Mapping[str, Any], core: Mapping[str, Any], metrics: List
         "insights": insights,
         "data_source": {
             "mcp_server": "building-mcp-server",
-            "products": [
-                {"name": "企业办公地址详情", "product_id": "6786528b1677add9f934358f"},
-                {"name": "企业办公地址统计", "product_id": "6786528b1677add9f934359d"},
-                {"name": "楼宇查询", "product_id": "6786528b1677add9f93435db"},
-            ],
+            "products": _requested_product_rows(subject),
             "generated_at": dt.datetime.now().astimezone().isoformat(timespec="seconds"),
             "dry_run": dry_run,
+            "tool_errors": list(tool_errors or []),
+            "blocked_reason": subject.get("blocked_reason"),
             "quality_report": quality_report,
         },
     }
 
 
 def _query_buildings_for_estates(details: Any, page_size: int = 10) -> Any:
-    """Query building metadata for the estate names found in office details.
-    Falls back to returning empty if no estate names available."""
-    estate_names = set()
-    for item in _first_list(details):
-        if isinstance(item, dict):
-            name = _text(item.get("estateName")).strip()
-            if name and name != "-":
-                estate_names.add(name)
-    if not estate_names:
-        return {"resultList": [], "total": 0}
-    # Query buildings by estate name (top 5 to avoid too many calls)
-    all_buildings = []
-    for name in list(estate_names)[:5]:
-        result = _safe_call(T_BUILDING_QUERY, {"matchKeyword": name, "pageIndex": 1, "pageSize": page_size})
-        rows = _first_list(result)
-        for r in rows:
-            if isinstance(r, dict):
-                all_buildings.append(r)
-    # Deduplicate by estateId
-    seen_ids = set()
-    deduped = []
-    for r in all_buildings:
-        eid = _text(r.get("estateId"))
-        if eid and eid not in seen_ids:
-            seen_ids.add(eid)
-            deduped.append(r)
-        elif not eid:
-            deduped.append(r)
-    return {"resultList": deduped, "total": len(deduped)}
+    """Fetch building basics only from explicit estate IDs in office details."""
+    del page_size  # basic-info is not paginated
+    estate_ids = {
+        _text(item.get("estateId")).strip()
+        for item in _first_list(details)
+        if isinstance(item, dict) and _text(item.get("estateId")).strip()
+    }
+    all_buildings: List[Dict[str, Any]] = []
+    for estate_id in sorted(estate_ids):
+        result = _safe_call(T_BUILDING_BASIC, {"matchKeyword": estate_id})
+        record = _first_record(result)
+        if not record:
+            continue
+        row = dict(record)
+        row.setdefault("estateId", estate_id)
+        row["associationEvidence"] = "办公地址明细明确返回的楼宇ID"
+        all_buildings.append(row)
+    return {"resultList": all_buildings, "total": len(all_buildings)}
 
 
-def build_payload(raw: str, keyword_type: str, address: Optional[str], page_size: int, property_type: Optional[str]) -> Dict[str, Any]:
+@paid_call_scope
+def build_payload(raw: str, keyword_type: str, address: Optional[str], page_size: int, property_type: Optional[str], max_pages: int = 1) -> Dict[str, Any]:
+    if isinstance(max_pages, bool) or not isinstance(max_pages, int) or max_pages < 1:
+        raise ValueError("max_pages 必须为正整数")
     resolved = resolve_enterprise_name(raw)
     enterprise = resolved["enterprise"]
+    if not resolved.get("resolved"):
+        subject = build_subject(raw, resolved, keyword_type)
+        subject["blocked_reason"] = resolved.get("reason") or "企业主体未唯一解析"
+        report = _assemble(subject, build_core_analysis({}, {}, {}), [], dry_run=False, profile=None)
+        report["data_source"]["blocked_reason"] = subject["blocked_reason"]
+        return report
     profile = resolved.get("profile")  # may be None for direct full-name input
 
     # If profile not captured during resolution (enterprise name was full), fetch it now
@@ -709,28 +784,35 @@ def build_payload(raw: str, keyword_type: str, address: Optional[str], page_size
 
     mk_args: Dict[str, Any] = {"matchKeyword": enterprise, "keywordType": keyword_type}
 
-    details_args: Dict[str, Any] = {"matchKeyword": enterprise, "keywordType": keyword_type, "pageIndex": 1, "pageSize": page_size}
+    details_args: Dict[str, Any] = {"matchKeyword": enterprise, "keywordType": keyword_type, "pageSize": page_size}
     if address:
         details_args["address"] = address
 
-    details = _safe_call(T_OFFICE_DETAILS, details_args)
+    details = collect_detail_pages(_safe_call, T_OFFICE_DETAILS, details_args,
+                                   get_rows=_first_list, get_total=_safe_total, is_error=_is_api_error,
+                                   max_pages=max_pages)
     stats = _safe_call(T_OFFICE_STATS, mk_args)
 
     # Building query: try estate-name-based lookup first, fall back to generic query
     if address or property_type:
-        building_args: Dict[str, Any] = {"pageIndex": 1, "pageSize": page_size}
+        building_args: Dict[str, Any] = {"pageSize": page_size}
         if address:
             building_args["address"] = address
         if property_type:
             building_args["estatePropertyType"] = property_type
-        building = _safe_call(T_BUILDING_QUERY, building_args)
+        building = collect_detail_pages(_safe_call, T_BUILDING_QUERY, building_args,
+                                        get_rows=_first_list, get_total=_safe_total, is_error=_is_api_error,
+                                        max_pages=max_pages)
     else:
         building = _query_buildings_for_estates(details, page_size)
 
     subject = build_subject(raw, resolved, keyword_type)
-    core = build_core_analysis(details, stats, building)
-    metrics = build_metrics(details, stats, building, profile)
-    return _assemble(subject, core, metrics, dry_run=False, profile=profile)
+    market_building_query = bool(address or property_type)
+    subject["building_query_scope"] = "independent_market_filter" if market_building_query else "explicit_estate_id_association"
+    core = build_core_analysis(details, stats, building, filtered=bool(address), market_building_query=market_building_query)
+    metrics = build_metrics(details, stats, building, profile, filtered=bool(address), market_building_query=market_building_query)
+    return attach_pagination(_assemble(subject, core, metrics, dry_run=False, profile=profile, tool_errors=_failed_tools({"企业办公地址详情": details, "企业办公地址统计": stats, "楼宇查询": building})),
+                             {"办公地址明细": details, "楼宇查询": building})
 
 
 # --------------------------------------------------------------------------- #
@@ -744,16 +826,20 @@ def main() -> None:
     parser.add_argument("--address", default=None, help="可选地区筛选（省/市，英文逗号分隔，如 广东省,广州市）")
     parser.add_argument("--property-type", default=None, help="可选楼宇类型（写字楼/产业园/综合体/公寓酒店/展会中心）")
     parser.add_argument("--page-size", type=int, default=10, help="明细分页大小（最多 10）")
+    parser.add_argument("--max-pages", type=int, default=1, help="规划的明细付费调用页数上限，默认1；先按 total 估算，只有必要且已授权时提高")
     parser.add_argument("--dry-run", action="store_true", help="不调用真实 MCP，使用样例数据组装报告骨架")
     parser.add_argument("--output", help="输出 JSON 路径；省略则打印到 stdout")
     parser.add_argument("--report-output", help="同时输出 HTML 报告（.html）与 Markdown 报告（.md）")
     parser.add_argument("--pdf-output", help="额外输出 PDF 报告（.pdf）；需要 Playwright + Chromium")
     args = parser.parse_args()
 
+    if args.max_pages is not None and args.max_pages < 1:
+        raise SystemExit("--max-pages 必须为正整数")
+
     if args.dry_run:
         payload = build_dry_run_payload(args.enterprise, args.keyword_type)
     else:
-        payload = build_payload(args.enterprise, args.keyword_type, args.address, args.page_size, args.property_type)
+        payload = build_payload(args.enterprise, args.keyword_type, args.address, args.page_size, args.property_type, args.max_pages)
 
     if args.output:
         out = pathlib.Path(args.output).expanduser()

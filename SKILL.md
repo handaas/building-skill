@@ -1,6 +1,6 @@
 ---
 name: building-report
-description: Use for generating a professional building / office-address big-data report (楼宇大数据报告) from the HandaaS building MCP — covering 企业办公地址详情、办公地址分布统计、楼宇查询明细（写字楼/产业园/综合体/公寓酒店/展会中心）. Trigger when users ask for “楼宇大数据报告”, “办公地址分析”, “查一家公司的办公地址”, “办公地址统计”, “楼宇查询”, “写字楼入驻分析”, or “企业办公网络画像”. Infer the canonical enterprise name (auto-fuzzy-completing a keyword), pick the right MCP tools, and produce HTML + Markdown + JSON reports automatically.
+description: Use for generating a professional building / office-address big-data report (楼宇大数据报告) from the HandaaS building MCP — covering 企业办公地址详情、办公地址分布统计、楼宇查询明细（写字楼/产业园/综合体/公寓酒店/展会中心）. Trigger when users ask for “楼宇大数据报告”, “办公地址分析”, “查一家公司的办公地址”, “办公地址统计”, “楼宇查询”, “写字楼入驻分析”, or “企业办公网络画像”. Infer the canonical enterprise name (auto-fuzzy-completing a keyword), pick the right MCP tools, and produce HTML + Markdown + JSON reports automatically. MCP 服务名称触发词：楼宇资产信息。
 ---
 
 # 楼宇大数据报告
@@ -26,7 +26,25 @@ description: Use for generating a professional building / office-address big-dat
 - 报告所有章节标题、指标卡标签必须用中文；`core_analysis.sections` 的 `title` 字段必须中文，不可显示英文 key（如 `holders`、`investments`）。
 - 指标值必须可读化：金额格式为"X 亿/万 + 币种"，地址拼接省市区，比率显示百分号。详见 `references/report-output.md` 的「数据格式约束」。
 
+## 付费调用纪律（先规划后查询）
+
+每次真实调用均按接口/页计费，必须先规划再查询，不得默认全量拉取：
+
+1. 每一次业务/工具调用、每一页都可能收费。想算 total / 页数不是无限制取全量的授权。
+2. 调用前先推导：需要哪些结论、需要哪些数据维度、工具与参数计划、必要页数与最大调用预算。total 未知时，第一个必要的明细页同时完成 total 发现并直接作为报告数据，绝不为此多付一次（首屏响应必须复用，不重复拉取）。
+3. 优先用统计 / 画像 / 聚合接口回答能回答的问题（办公地址统计、模糊查询企业画像优先）；明细接口仅取结论、图表、代表性记录或用户明确的全量/计数需求所需的行数。只有用户明确要全面报告时才跑全面管线，绝不因为工具存在就全部调用。
+4. 在 schema 允许范围内用合理的大 pageSize（≤10，办公地址详情与楼宇查询的接口上限），取得所需证据 / 样本即停，且不超出显式预算。更多调用必须有“缺失结论”的正当理由，不能只为填满章节。不得用样本分布冒充全量结论。
+5. 复用当前任务 / 报告内的相同请求（含首屏规划数据）；不要为渲染重跑 compose/MCP，用已保存 JSON 本地重渲染。不自动重试、不重复拉取同一统计或明细、不并行独立拉取相同数据。任何补充查询必须先列缺口并复用已返回记录。
+6. `total_pages` / `remaining_pages` 是按请求 pageSize 的估算；短而非空页面仍有剩余记录时在预算内继续。只有稳定有效的 total 等于实际扫描条数才算完整采集；错误、提前空页、重复页、total 变化/缺失、数量溢出均视为不完整。显式预算 / 样本停止即部分采集，绝不宣称全量。
+7. 预算不足以支撑用户要求的关键结论时：先说明证据缺口与预计需要追加的调用数，再请求扩大授权（提高 `--max-pages`）；不静默降级结论，也不擅自扩大计费范围。
+
+分页收集默认每次明细调用预算 `--max-pages 1`（每明细接口）；明细接口的 total、实际取数、完整性披露写入报告 `data_source.pagination`，报告级去重统计写入 `data_source.call_usage`.
+
+**楼宇基本信息 ID 关联**：当未指定 `--address` / `--property-type` 时，报告从办公地址明细页中提取明确的楼宇 ID（estateId），按 ID 调用 `building_bigdata_building_basic_info`（非分页，每 ID 一次业务调用，ID 数量 = 当前页明细内去重的 estateId 数量）；这些调用同样纳入 `call_usage` 计数。计划时需估算当前页楼宇去重数量，不因“补充基本信息”自动扩大至所有 estateId；仅取本报告结论、图表和代表性记录所需的楼宇字段。
+
 ## MCP 服务入口
+
+- MCP 服务当前名称：楼宇资产信息（连接仍使用原服务目录标识）。
 
 - 上游 MCP 项目：`handaas-mcp-server/building-mcp-server`（位于 `HANDAAS_MCP_SERVER_ROOT` 或本仓库同级目录）。
 - Remote MCP：设置环境变量 `BUILDING_MCP_URL`（streamable-http），可选 `BUILDING_MCP_TOKEN`。
@@ -53,7 +71,7 @@ description: Use for generating a professional building / office-address big-dat
 ## Golden path for 楼宇大数据报告
 
 1. **解析企业全称**：若输入含“公司/集团/有限/院/厂/中心/事务所/合作社/合伙”等后缀视为全称；否则调 `building_bigdata_fuzzy_search` 取首个命中。
-2. **调用楼宇工具**：`building_bigdata_office_address_details`（办公地址详情：地址/楼宇/入驻方式/来源）、`building_bigdata_office_address_stats`（按城市统计）、`building_bigdata_building_query`（按地区/类型/关键词检索楼盘）。企业主体工具入参为 `matchKeyword`（企业全称）+ `keywordType`。
+2. **调用楼宇工具**：`building_bigdata_office_address_details`（办公地址详情：地址/楼宇/入驻方式/来源，分页，默认 1 页预算）、`building_bigdata_office_address_stats`（按城市统计）、`building_bigdata_building_query`（按地区/类型/关键词检索楼盘，分页，默认 1 页预算）。企业主体工具入参为 `matchKeyword`（企业全称）+ `keywordType`；明细按 total 驱动、在 `--max-pages`（默认 1）预算内翻页，超出预算时报告披露未纳入条数而非宣称全量。
 3. **组装统一报告**：核心分析含办公地址详情（表）、办公地址统计（表）、楼宇查询明细（表）。
 4. **渲染三件套**：`compose_report.py --enterprise ... --output ... --report-output ...` 直接产出 JSON + HTML + Markdown；或 `render_report.py --input ... --output ...` 重渲染。
 5. **返回路径**：返回 JSON、HTML、Markdown 文件路径，以及企业全称映射与数据口径。
@@ -88,6 +106,14 @@ python scripts/compose_report.py \
   --property-type 写字楼 \
   --report-output output/building_gz_office.html
 
+# 按地区 + 楼宇类型筛选（明细翻页预算提升到 3 页）
+python scripts/compose_report.py \
+  --enterprise "示例科技有限公司" \
+  --address "广东省,广州市" \
+  --property-type 写字楼 \
+  --max-pages 3 \
+  --report-output output/building_gz_office.html
+
 # 手动调单个工具
 python scripts/mcp_client.py call-tool \
   --tool building_bigdata_office_address_stats \
@@ -107,6 +133,6 @@ python scripts/render_report.py --input output/building.json --output output/bui
 - `core_analysis`：办公地址详情（表）、办公地址统计（表）、楼宇查询明细（表）。
 - `representative_records`：代表性办公地址（地址 / 楼宇 / 入驻方式）。
 - `insights`：结构化解读（办公地址规模 / 城市分布广度 / 楼宇库存参考）。
-- `data_source`：MCP server、数据产品、生成时间、是否 dry-run。
+- `data_source`：MCP server、数据产品、生成时间、是否 dry-run；分页接口的 pagination（每接口上游 total / 请求页数 / 取得条数 / 未纳入条数 / 完整性与停止原因）与 call_usage（本报告实际执行与复用的请求数）。
 
 若 API 调用失败，明确报出缺失的配置 / 缺失的工具 / MCP 错误 / 参数校验错误 / 上游网络错误，给出 dry-run 命令或配置步骤，绝不暴露密钥。
