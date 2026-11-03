@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "skill": "building-skill",
+  "case_id": "03-guangzhou-office-filter",
+  "title": "广州写字楼筛选",
+  "invocation_id": "1793070047323242000",
+  "provenance": {
+    "integrator_id": "683e574805537ace146cc05e",
+    "runner_sha256": "05777c2f2b0791cb5157aef691206606dade8df7af3b17212285b7ae74632a66",
+    "credential_policy_sha256": "bcabf08a1ca92f28357c0e57a8bae9bfa910eb1d4b204d8195ee3b7a77106eed",
+    "scenario_sha256": "09c40d0d8cbcf290b4f7cd144e86e48f6b5449454eaeb2a68d3cc3800264ae77",
+    "skill_source_hashes": {
+      "scripts/common.py": "b6420c20c5f71885899da09c17ac34287f58f295625bf81e9523b8ea301fcdd1",
+      "scripts/compose_report.py": "209322e210dbfd2a94261fce305d0b84d788792aaa3939307af1f2b559e7cc65",
+      "scripts/mcp_client.py": "1c8792db5c3261e9ec4a697d06b9ad905ed0652cc439e732634ddb168c8ab990",
+      "scripts/render_report.py": "57569075f128aeb716d9ebdb533e316b70affb74d73fa2a8c63e42b84d115b0f",
+      "scripts/validate_config.py": "ab86faab5c49d4ba9fedb45e50caf18a20a1b2ff1947684efd032be605a96ad5"
+    },
+    "upstream_source_hashes": {
+      "building-mcp-server": "201f077383663e755557c2a2d3971f5e8e404d3d931a700e3586908cf39671ee"
+    },
+    "upstream_dependency_hashes": {
+      "building-mcp-server/server/mcp_server.py": "201f077383663e755557c2a2d3971f5e8e404d3d931a700e3586908cf39671ee"
+    }
+  },
+  "source_changed_during_run": false,
+  "started_at": "2026-10-27T11:00:47+08:00",
+  "elapsed_seconds": 4.452,
+  "returncode": 0,
+  "exception_type": null,
+  "command": "python3 building-skill/scripts/compose_report.py --enterprise '华为技术有限公司' --address '广东省,广州市' --property-type '写字楼' --page-size 8 --output building-skill/output/live-replaced-20261027/03-guangzhou-office-filter/report.json --report-output building-skill/output/live-replaced-20261027/03-guangzhou-office-filter/report.html",
+  "transport": "local MCP servers via loopback streamable-http",
+  "cache_used": false,
+  "call_count": 4,
+  "successful_data_calls": 4,
+  "empty_calls": 0,
+  "failed_calls": 0,
+  "checks": {
+    "issues": [],
+    "warnings": [],
+    "coverage_pct": 100,
+    "subject": {
+      "enterprise": "华为技术有限公司",
+      "matchKeyword": "华为技术有限公司",
+      "keywordType": "name",
+      "match_raw": "华为技术有限公司",
+      "resolved": true,
+      "resolve_reason": "视为企业全称",
+      "building_query_scope": "independent_market_filter"
+    },
+    "title": "华为技术有限公司 楼宇大数据报告",
+    "data_mode": null,
+    "metrics": [
+      {
+        "label": "办公地址总数",
+        "value": "8",
+        "hint": "企业办公地址总数"
+      },
+      {
+        "label": "覆盖省份数",
+        "value": "1",
+        "hint": "办公地址所涉省份数"
+      },
+      {
+        "label": "筛选楼宇命中量",
+        "value": "20361",
+        "hint": "独立楼宇筛选结果，不代表企业关联"
+      },
+      {
+        "label": "注册资本",
+        "value": "411.41 亿 人民币",
+        "hint": "企业注册资本"
+      },
+      {
+        "label": "年营业额",
+        "value": "10亿以上",
+        "hint": "企业年营业额"
+      },
+      {
+        "label": "成立年份",
+        "value": "1987",
+        "hint": "成立于 1987-09-15"
+      },
+      {
+        "label": "经营状态",
+        "value": "营业",
+        "hint": "企业经营状态"
+      }
+    ],
+    "quality_report": {
+      "total_sections": 7,
+      "populated_sections": 7,
+      "empty_sections": 0,
+      "coverage_pct": 100
+    },
+    "unregistered_tools": [],
+    "checks": {
+      "json_html_markdown": true,
+      "explicit_live": true,
+      "tool_calls_recorded": 4,
+      "offline_scripts": true,
+      "independent_rerender": true,
+      "offline_browser": true
+    }
+  },
+  "status": "passed",
+  "source_hashes": {
+    "scripts/common.py": "b6420c20c5f71885899da09c17ac34287f58f295625bf81e9523b8ea301fcdd1",
+    "scripts/compose_report.py": "209322e210dbfd2a94261fce305d0b84d788792aaa3939307af1f2b559e7cc65",
+    "scripts/mcp_client.py": "1c8792db5c3261e9ec4a697d06b9ad905ed0652cc439e732634ddb168c8ab990",
+    "scripts/render_report.py": "57569075f128aeb716d9ebdb533e316b70affb74d73fa2a8c63e42b84d115b0f",
+    "scripts/validate_config.py": "ab86faab5c49d4ba9fedb45e50caf18a20a1b2ff1947684efd032be605a96ad5"
+  },
+  "technical_status": "passed",
+  "audited_at": "2026-10-27T11:12:56+08:00",
+  "evidence_binding": {
+    "report.json": "eb31b328bbf51a67759f523289697e6b9097f39d25bcbefb7565247d54810787",
+    "report.html": "793c3a1c0893804b9b1c1ad432d4e28db7132c78d27ed586660ea42568a4018e",
+    "report.md": "9c2cd5a4fb0750be9f1d55dcd72ed66406c576339a06adf4bd73f56313ba32ec",
+    "calls.json": "d926a9d6fd12e5219c6aef0e774c51aa7f2db77dfeb91d2b47d8d73988c9594b",
+    "result.json": "9486bdb70f854762f815f393f945908ecd5ca20959da69736d1911b9299dd38a",
+    "source_manifest_sha256": "014e0c39ccd221d4b037bfafc75dc705b73521da54c003be18fa8ca62d4dab92"
+  },
+  "business_review": {
+    "id": "03-guangzhou-office-filter",
+    "verdict": "acceptable",
+    "summary": "当前真实产物逐项复核通过；结论限于本次上游公开样本与报告声明口径。",
+    "checks": [
+      {
+        "expectation": "办公详情应用广州地区过滤",
+        "status": "pass",
+        "evidence": "已证明“办公详情应用广州地区过滤”。 实际调用=[{\"tool\":\"building_bigdata_fuzzy_search\",\"status\":\"data\",\"row_count\":1,\"reported_total\":128,\"arguments\":{\"matchKeyword\":\"华为技术有限公司\",\"pageSize\":1}},{\"tool\":\"building_bigdata_office_address_details\",\"status\":\"data\",\"row_count\":8,\"reported_total\":8,\"arguments\":{\"matchKeyword\":\"华为技术有限公司\",\"keywordType\":\"name\",\"pageIndex\":1,\"pageSize\":8,\"address\":\"广东省,广州市\"}},{\"tool\":\"building_bigdata_office_address_stats\",\"status\":\"data\",\"row_count\":null,\"reported_total\":null,\"arguments\":{\"matchKeyword\":\"华为技术有限公司\",\"keywordType\":\"name\"}},{\"tool\":\"building_bigdata_building_query\",\"status\":\"data\",\"row_count\":8,\"reported_total\":20361,\"arguments\":{\"pageIndex\":1,\"pageSize\":8,\"address\":\"广东省,广州市\",\"estatePropertyType\":\"写字楼\"}}] subject={\"enterprise\":\"华为技术有限公司\",\"matchKeyword\":\"华为技术有限公司\",\"keywordType\":\"name\",\"match_raw\":\"华为技术有限公司\",\"resolved\":true,\"resolve_reason\":\"视为企业全称\",\"building_query_scope\":\"independent_market_filter\"} 口径={\"match_target\":\"华为技术有限公司\",\"match_type\":\"楼宇/办公地址数据按企业主体匹配（keywordType=name）；楼宇查询支持按地区/楼宇类型/关键词检索\",\"data_scope\":\"企业模糊查询、企业办公地址详情、企业办公地址统计、楼宇查询\",\"products\":[\"企业模糊查询\",\"企业办公地址详情\",\"企业办公地址统计\",\"楼宇查询\"],\"limit\":\"地址与入驻信息仅为公开数据线索，可能存在更新延迟；不证明楼宇/房产所有权、持续租赁、实际办公或人员驻场。地区筛选明细不得与全国统计交叉计算比率。\"}"
+      },
+      {
+        "expectation": "楼宇查询应用地区和写字楼类型",
+        "status": "pass",
+        "evidence": "已证明“楼宇查询应用地区和写字楼类型”。 实际调用=[{\"tool\":\"building_bigdata_fuzzy_search\",\"status\":\"data\",\"row_count\":1,\"reported_total\":128,\"arguments\":{\"matchKeyword\":\"华为技术有限公司\",\"pageSize\":1}},{\"tool\":\"building_bigdata_office_address_details\",\"status\":\"data\",\"row_count\":8,\"reported_total\":8,\"arguments\":{\"matchKeyword\":\"华为技术有限公司\",\"keywordType\":\"name\",\"pageIndex\":1,\"pageSize\":8,\"address\":\"广东省,广州市\"}},{\"tool\":\"building_bigdata_office_address_stats\",\"status\":\"data\",\"row_count\":null,\"reported_total\":null,\"arguments\":{\"matchKeyword\":\"华为技术有限公司\",\"keywordType\":\"name\"}},{\"tool\":\"building_bigdata_building_query\",\"status\":\"data\",\"row_count\":8,\"reported_total\":20361,\"arguments\":{\"pageIndex\":1,\"pageSize\":8,\"address\":\"广东省,广州市\",\"estatePropertyType\":\"写字楼\"}}] subject={\"enterprise\":\"华为技术有限公司\",\"matchKeyword\":\"华为技术有限公司\",\"keywordType\":\"name\",\"match_raw\":\"华为技术有限公司\",\"resolved\":true,\"resolve_reason\":\"视为企业全称\",\"building_query_scope\":\"independent_market_filter\"} 口径={\"match_target\":\"华为技术有限公司\",\"match_type\":\"楼宇/办公地址数据按企业主体匹配（keywordType=name）；楼宇查询支持按地区/楼宇类型/关键词检索\",\"data_scope\":\"企业模糊查询、企业办公地址详情、企业办公地址统计、楼宇查询\",\"products\":[\"企业模糊查询\",\"企业办公地址详情\",\"企业办公地址统计\",\"楼宇查询\"],\"limit\":\"地址与入驻信息仅为公开数据线索，可能存在更新延迟；不证明楼宇/房产所有权、持续租赁、实际办公或人员驻场。地区筛选明细不得与全国统计交叉计算比率。\"} 实际记录样本={\"office_details\":[{\"办公地址\":\"广东省广州市越秀区环市东路368号\",\"所在城市\":\"广州市\",\"所在区域\":\"越秀区\",\"所在楼宇\":\"花园大厦\",\"楼宇ID\":\"68731942c13f5655\",\"入驻方式\":\"办公地址入驻\",\"地址来源\":\"办公地址\"},{\"办公地址\":\"广州市天河区珠江东五街环球都会广场\",\"所在城市\":\"广州市\",\"所在区域\":\"天河区\",\"所在楼宇\":\"环球都会广场\",\"楼宇ID\":\"c0decc520d8d05a7\",\"入驻方式\":\"办公地址入驻\",\"地址来源\":\"办公地址\"}],\"office_province\":[{\"省份\":\"广东省\",\"办公点数\":\"8\"}],\"office_stats\":[{\"城市\":\"太原市\",\"办公地址数量\":\"5\"},{\"城市\":\"东莞市\",\"办公地址数量\":\"3\"}],\"settle_type\":[{\"入驻方式\":\"办公地址入驻\",\"数量\":\"8\"}],\"source_type\":[{\"地址来源\":\"招聘信息\",\"数量\":\"6\"},{\"地址来源\":\"办公地址\",\"数量\":\"2\"}],\"building_query\":[{\"楼宇名称\":\"神话商务大厦\",\"楼宇类型\":\"写字楼\",\"楼宇地址\":\"广东省广州市白云区学校北路10号\",\"入驻企业数\":\"23\",\"楼宇ID\":\"15b0189067ff93e0\",\"关联依据\":\"-\"},{\"楼宇名称\":\"石东商务中心\",\"楼宇类型\":\"写字楼\",\"楼宇地址\":\"广东省广州市天河区员村四横路天河员村四横路8号\",\"入驻企业数\":\"44\",\"楼宇ID\":\"0d27526741c94d7f\",\"关联依据\":\"-\"}],\"building_type\":[{\"楼宇类型\":\"写字楼\",\"数量\":\"8\"}]} 可见章节=[{\"title\":\"办公地址详情\",\"note\":\"展示 8 条办公地址记录；上游总量 8\"},{\"title\":\"办公地址省份分布\",\"note\":\"按办公地址所在省份聚合办公点数量\"},{\"title\":\"办公地址城市分布（全国口径）\",\"note\":\"企业全国办公地址统计；不与地区筛选后的明细交叉计算比率\"},{\"title\":\"入驻方式分布\",\"note\":\"按入驻方式（工商注册入驻 / 办公地址入驻）统计\"},{\"title\":\"地址来源分布\",\"note\":\"按地址来源类型（工商登记 / 办公地址 / 招聘信息）统计\"},{\"title\":\"独立楼宇筛选明细\",\"note\":\"独立地区/类型筛选，不代表与查询企业关联；展示 8 个楼盘；上游总量 20361\"},{\"title\":\"楼宇类型分布\",\"note\":\"按楼宇类型聚合命中楼盘数量\"}]"
+      },
+      {
+        "expectation": "企业办公记录与区域楼宇市场结果分章节",
+        "status": "pass",
+        "evidence": "已证明“企业办公记录与区域楼宇市场结果分章节”。 实际记录样本={\"office_details\":[{\"办公地址\":\"广东省广州市越秀区环市东路368号\",\"所在城市\":\"广州市\",\"所在区域\":\"越秀区\",\"所在楼宇\":\"花园大厦\",\"楼宇ID\":\"68731942c13f5655\",\"入驻方式\":\"办公地址入驻\",\"地址来源\":\"办公地址\"},{\"办公地址\":\"广州市天河区珠江东五街环球都会广场\",\"所在城市\":\"广州市\",\"所在区域\":\"天河区\",\"所在楼宇\":\"环球都会广场\",\"楼宇ID\":\"c0decc520d8d05a7\",\"入驻方式\":\"办公地址入驻\",\"地址来源\":\"办公地址\"}],\"office_province\":[{\"省份\":\"广东省\",\"办公点数\":\"8\"}],\"office_stats\":[{\"城市\":\"太原市\",\"办公地址数量\":\"5\"},{\"城市\":\"东莞市\",\"办公地址数量\":\"3\"}],\"settle_type\":[{\"入驻方式\":\"办公地址入驻\",\"数量\":\"8\"}],\"source_type\":[{\"地址来源\":\"招聘信息\",\"数量\":\"6\"},{\"地址来源\":\"办公地址\",\"数量\":\"2\"}],\"building_query\":[{\"楼宇名称\":\"神话商务大厦\",\"楼宇类型\":\"写字楼\",\"楼宇地址\":\"广东省广州市白云区学校北路10号\",\"入驻企业数\":\"23\",\"楼宇ID\":\"15b0189067ff93e0\",\"关联依据\":\"-\"},{\"楼宇名称\":\"石东商务中心\",\"楼宇类型\":\"写字楼\",\"楼宇地址\":\"广东省广州市天河区员村四横路天河员村四横路8号\",\"入驻企业数\":\"44\",\"楼宇ID\":\"0d27526741c94d7f\",\"关联依据\":\"-\"}],\"building_type\":[{\"楼宇类型\":\"写字楼\",\"数量\":\"8\"}]} 可见章节=[{\"title\":\"办公地址详情\",\"note\":\"展示 8 条办公地址记录；上游总量 8\"},{\"title\":\"办公地址省份分布\",\"note\":\"按办公地址所在省份聚合办公点数量\"},{\"title\":\"办公地址城市分布（全国口径）\",\"note\":\"企业全国办公地址统计；不与地区筛选后的明细交叉计算比率\"},{\"title\":\"入驻方式分布\",\"note\":\"按入驻方式（工商注册入驻 / 办公地址入驻）统计\"},{\"title\":\"地址来源分布\",\"note\":\"按地址来源类型（工商登记 / 办公地址 / 招聘信息）统计\"},{\"title\":\"独立楼宇筛选明细\",\"note\":\"独立地区/类型筛选，不代表与查询企业关联；展示 8 个楼盘；上游总量 20361\"},{\"title\":\"楼宇类型分布\",\"note\":\"按楼宇类型聚合命中楼盘数量\"}]"
+      },
+      {
+        "expectation": "不得把区域楼宇列表都归属于该企业",
+        "status": "pass",
+        "evidence": "已证明“不得把区域楼宇列表都归属于该企业”。 实际记录样本={\"office_details\":[{\"办公地址\":\"广东省广州市越秀区环市东路368号\",\"所在城市\":\"广州市\",\"所在区域\":\"越秀区\",\"所在楼宇\":\"花园大厦\",\"楼宇ID\":\"68731942c13f5655\",\"入驻方式\":\"办公地址入驻\",\"地址来源\":\"办公地址\"},{\"办公地址\":\"广州市天河区珠江东五街环球都会广场\",\"所在城市\":\"广州市\",\"所在区域\":\"天河区\",\"所在楼宇\":\"环球都会广场\",\"楼宇ID\":\"c0decc520d8d05a7\",\"入驻方式\":\"办公地址入驻\",\"地址来源\":\"办公地址\"}],\"office_province\":[{\"省份\":\"广东省\",\"办公点数\":\"8\"}],\"office_stats\":[{\"城市\":\"太原市\",\"办公地址数量\":\"5\"},{\"城市\":\"东莞市\",\"办公地址数量\":\"3\"}],\"settle_type\":[{\"入驻方式\":\"办公地址入驻\",\"数量\":\"8\"}],\"source_type\":[{\"地址来源\":\"招聘信息\",\"数量\":\"6\"},{\"地址来源\":\"办公地址\",\"数量\":\"2\"}],\"building_query\":[{\"楼宇名称\":\"神话商务大厦\",\"楼宇类型\":\"写字楼\",\"楼宇地址\":\"广东省广州市白云区学校北路10号\",\"入驻企业数\":\"23\",\"楼宇ID\":\"15b0189067ff93e0\",\"关联依据\":\"-\"},{\"楼宇名称\":\"石东商务中心\",\"楼宇类型\":\"写字楼\",\"楼宇地址\":\"广东省广州市天河区员村四横路天河员村四横路8号\",\"入驻企业数\":\"44\",\"楼宇ID\":\"0d27526741c94d7f\",\"关联依据\":\"-\"}],\"building_type\":[{\"楼宇类型\":\"写字楼\",\"数量\":\"8\"}]} 可见章节=[{\"title\":\"办公地址详情\",\"note\":\"展示 8 条办公地址记录；上游总量 8\"},{\"title\":\"办公地址省份分布\",\"note\":\"按办公地址所在省份聚合办公点数量\"},{\"title\":\"办公地址城市分布（全国口径）\",\"note\":\"企业全国办公地址统计；不与地区筛选后的明细交叉计算比率\"},{\"title\":\"入驻方式分布\",\"note\":\"按入驻方式（工商注册入驻 / 办公地址入驻）统计\"},{\"title\":\"地址来源分布\",\"note\":\"按地址来源类型（工商登记 / 办公地址 / 招聘信息）统计\"},{\"title\":\"独立楼宇筛选明细\",\"note\":\"独立地区/类型筛选，不代表与查询企业关联；展示 8 个楼盘；上游总量 20361\"},{\"title\":\"楼宇类型分布\",\"note\":\"按楼宇类型聚合命中楼盘数量\"}] 摘要/局限={\"summary\":\"本报告以“华为技术有限公司”为分析对象，基于楼宇/办公地址大数据，系统呈现企业办公地址详情、地址分布统计（城市/省份/入驻方式/来源）与楼宇查询明细。关键指标包括：办公地址总数 8、覆盖省份数 1、筛选楼宇命中量 20361、注册资本 411.41 亿 人民币、年营业额 10亿以上。报告同时给出办公地址规模、城市分布广度、入驻方式结构与楼宇库存的多维度解读，便于选址招商、市场分析与竞争格局研究参考。\",\"limit\":\"地址与入驻信息仅为公开数据线索，可能存在更新延迟；不证明楼宇/房产所有权、持续租赁、实际办公或人员驻场。地区筛选明细不得与全国统计交叉计算比率。\",\"insights\":[{\"feature\":\"办公地址规模\",\"evidence\":\"企业办公地址总数 8。\",\"interpretation\":\"办公地址记录仅是公开来源线索，可用于后续核验；不能据此推断资产所有权、持续入驻、人员规模或实际经营状态。\"},{\"feature\":\"全国口径城市分布集中度\",\"evidence\":\"地区筛选下仍为全国统计口径；“上海市”公开办公地址统计占比约 4%，全国前 3 城市合计 12%（CR3）。\",\"interpretation\":\"该集中度只描述公开地址统计的全国分布，不与地区筛选明细合并，也不证明实际经营覆盖或地址所有权。\"}]}"
+      }
+    ],
+    "issues": [],
+    "evidence_binding": {
+      "report.json": "eb31b328bbf51a67759f523289697e6b9097f39d25bcbefb7565247d54810787",
+      "report.html": "793c3a1c0893804b9b1c1ad432d4e28db7132c78d27ed586660ea42568a4018e",
+      "report.md": "9c2cd5a4fb0750be9f1d55dcd72ed66406c576339a06adf4bd73f56313ba32ec",
+      "calls.json": "d926a9d6fd12e5219c6aef0e774c51aa7f2db77dfeb91d2b47d8d73988c9594b",
+      "result.json": "9486bdb70f854762f815f393f945908ecd5ca20959da69736d1911b9299dd38a",
+      "source_manifest_sha256": "014e0c39ccd221d4b037bfafc75dc705b73521da54c003be18fa8ca62d4dab92"
+    }
+  }
+}

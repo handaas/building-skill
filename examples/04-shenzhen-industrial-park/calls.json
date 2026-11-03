@@ -1,0 +1,155 @@
+[
+  {
+    "tool": "building_bigdata_fuzzy_search",
+    "domain": null,
+    "arguments": {
+      "matchKeyword": "比亚迪股份有限公司",
+      "pageSize": 1
+    },
+    "invocation_id": "1793070048183369000",
+    "elapsed_seconds": 0.839,
+    "status": "data",
+    "error_category": null,
+    "result_type": "dict",
+    "top_level_fields": [
+      "resultList",
+      "total"
+    ],
+    "row_count": 1,
+    "reported_total": 984,
+    "numeric_evidence": [
+      {
+        "path": "resultList[0].regCapitalValue",
+        "value": 9117197565.0
+      },
+      {
+        "path": "total",
+        "value": 984
+      }
+    ],
+    "response_sha256": "fe6570bd54c848774b80e591981ef0cbc95478fe682a9378cf4f5fe18e424d07"
+  },
+  {
+    "tool": "building_bigdata_office_address_details",
+    "domain": null,
+    "arguments": {
+      "matchKeyword": "比亚迪股份有限公司",
+      "keywordType": "name",
+      "pageIndex": 1,
+      "pageSize": 10,
+      "address": "广东省,深圳市"
+    },
+    "invocation_id": "1793070048183369000",
+    "elapsed_seconds": 1.271,
+    "status": "data",
+    "error_category": null,
+    "result_type": "dict",
+    "top_level_fields": [
+      "resultList",
+      "total"
+    ],
+    "row_count": 6,
+    "reported_total": 6,
+    "numeric_evidence": [
+      {
+        "path": "total",
+        "value": 6
+      }
+    ],
+    "response_sha256": "18775a1c864483952f24aca8d108002399168daf8550ec1d3b258d947d6897ad"
+  },
+  {
+    "tool": "building_bigdata_office_address_stats",
+    "domain": null,
+    "arguments": {
+      "matchKeyword": "比亚迪股份有限公司",
+      "keywordType": "name"
+    },
+    "invocation_id": "1793070048183369000",
+    "elapsed_seconds": 0.56,
+    "status": "data",
+    "error_category": null,
+    "result_type": "dict",
+    "top_level_fields": [
+      "officeCityStats",
+      "cityCount"
+    ],
+    "row_count": null,
+    "reported_total": null,
+    "numeric_evidence": [
+      {
+        "path": "officeCityStats[0].count",
+        "value": 1
+      },
+      {
+        "path": "officeCityStats[1].count",
+        "value": 1
+      },
+      {
+        "path": "officeCityStats[2].count",
+        "value": 1
+      },
+      {
+        "path": "officeCityStats[3].count",
+        "value": 9
+      },
+      {
+        "path": "officeCityStats[4].count",
+        "value": 6
+      },
+      {
+        "path": "cityCount",
+        "value": 44
+      }
+    ],
+    "response_sha256": "b5f285fa3456f7f9bbf123c5a7b714d02849a7bd82b041e5e22cf8c9ef99d11f"
+  },
+  {
+    "tool": "building_bigdata_building_query",
+    "domain": null,
+    "arguments": {
+      "pageIndex": 1,
+      "pageSize": 10,
+      "address": "广东省,深圳市",
+      "estatePropertyType": "产业园"
+    },
+    "invocation_id": "1793070048183369000",
+    "elapsed_seconds": 1.205,
+    "status": "data",
+    "error_category": null,
+    "result_type": "dict",
+    "top_level_fields": [
+      "resultList",
+      "total"
+    ],
+    "row_count": 10,
+    "reported_total": 21763,
+    "numeric_evidence": [
+      {
+        "path": "resultList[0].estateEnterpriseCount",
+        "value": 17
+      },
+      {
+        "path": "resultList[1].estateEnterpriseCount",
+        "value": 16
+      },
+      {
+        "path": "resultList[2].estateEnterpriseCount",
+        "value": 7
+      },
+      {
+        "path": "resultList[3].estateEnterpriseCount",
+        "value": 17
+      },
+      {
+        "path": "resultList[4].estateEnterpriseCount",
+        "value": 43
+      },
+      {
+        "path": "total",
+        "value": 21763
+      }
+    ],
+    "response_sha256": "34dfbec180e867f164ce6090f9f9e7562e5c4d92ee97562ef7ab8f1ab2a2f2d1"
+  }
+]

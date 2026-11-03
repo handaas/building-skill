@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "skill": "building-skill",
+  "case_id": "04-shenzhen-industrial-park",
+  "title": "深圳产业园筛选",
+  "invocation_id": "1793070048183369000",
+  "provenance": {
+    "integrator_id": "683e574805537ace146cc05e",
+    "runner_sha256": "05777c2f2b0791cb5157aef691206606dade8df7af3b17212285b7ae74632a66",
+    "credential_policy_sha256": "bcabf08a1ca92f28357c0e57a8bae9bfa910eb1d4b204d8195ee3b7a77106eed",
+    "scenario_sha256": "8201e2206784404dc23d9c59f6d615f62b0bd0e840cda64dfc5aaeaefc29b8d5",
+    "skill_source_hashes": {
+      "scripts/common.py": "b6420c20c5f71885899da09c17ac34287f58f295625bf81e9523b8ea301fcdd1",
+      "scripts/compose_report.py": "209322e210dbfd2a94261fce305d0b84d788792aaa3939307af1f2b559e7cc65",
+      "scripts/mcp_client.py": "1c8792db5c3261e9ec4a697d06b9ad905ed0652cc439e732634ddb168c8ab990",
+      "scripts/render_report.py": "57569075f128aeb716d9ebdb533e316b70affb74d73fa2a8c63e42b84d115b0f",
+      "scripts/validate_config.py": "ab86faab5c49d4ba9fedb45e50caf18a20a1b2ff1947684efd032be605a96ad5"
+    },
+    "upstream_source_hashes": {
+      "building-mcp-server": "201f077383663e755557c2a2d3971f5e8e404d3d931a700e3586908cf39671ee"
+    },
+    "upstream_dependency_hashes": {
+      "building-mcp-server/server/mcp_server.py": "201f077383663e755557c2a2d3971f5e8e404d3d931a700e3586908cf39671ee"
+    }
+  },
+  "source_changed_during_run": false,
+  "started_at": "2026-10-27T11:00:48+08:00",
+  "elapsed_seconds": 3.966,
+  "returncode": 0,
+  "exception_type": null,
+  "command": "python3 building-skill/scripts/compose_report.py --enterprise '比亚迪股份有限公司' --address '广东省,深圳市' --property-type '产业园' --page-size 10 --output building-skill/output/live-replaced-20261027/04-shenzhen-industrial-park/report.json --report-output building-skill/output/live-replaced-20261027/04-shenzhen-industrial-park/report.html",
+  "transport": "local MCP servers via loopback streamable-http",
+  "cache_used": false,
+  "call_count": 4,
+  "successful_data_calls": 4,
+  "empty_calls": 0,
+  "failed_calls": 0,
+  "checks": {
+    "issues": [],
+    "warnings": [],
+    "coverage_pct": 100,
+    "subject": {
+      "enterprise": "比亚迪股份有限公司",
+      "matchKeyword": "比亚迪股份有限公司",
+      "keywordType": "name",
+      "match_raw": "比亚迪股份有限公司",
+      "resolved": true,
+      "resolve_reason": "视为企业全称",
+      "building_query_scope": "independent_market_filter"
+    },
+    "title": "比亚迪股份有限公司 楼宇大数据报告",
+    "data_mode": null,
+    "metrics": [
+      {
+        "label": "办公地址总数",
+        "value": "6",
+        "hint": "企业办公地址总数"
+      },
+      {
+        "label": "覆盖省份数",
+        "value": "1",
+        "hint": "办公地址所涉省份数"
+      },
+      {
+        "label": "筛选楼宇命中量",
+        "value": "21763",
+        "hint": "独立楼宇筛选结果，不代表企业关联"
+      },
+      {
+        "label": "注册资本",
+        "value": "91.17 亿 人民币",
+        "hint": "企业注册资本"
+      },
+      {
+        "label": "年营业额",
+        "value": "10亿以上",
+        "hint": "企业年营业额"
+      },
+      {
+        "label": "成立年份",
+        "value": "1995",
+        "hint": "成立于 1995-02-10"
+      },
+      {
+        "label": "经营状态",
+        "value": "营业",
+        "hint": "企业经营状态"
+      }
+    ],
+    "quality_report": {
+      "total_sections": 7,
+      "populated_sections": 7,
+      "empty_sections": 0,
+      "coverage_pct": 100
+    },
+    "unregistered_tools": [],
+    "checks": {
+      "json_html_markdown": true,
+      "explicit_live": true,
+      "tool_calls_recorded": 4,
+      "offline_scripts": true,
+      "independent_rerender": true,
+      "offline_browser": true
+    }
+  },
+  "status": "passed",
+  "source_hashes": {
+    "scripts/common.py": "b6420c20c5f71885899da09c17ac34287f58f295625bf81e9523b8ea301fcdd1",
+    "scripts/compose_report.py": "209322e210dbfd2a94261fce305d0b84d788792aaa3939307af1f2b559e7cc65",
+    "scripts/mcp_client.py": "1c8792db5c3261e9ec4a697d06b9ad905ed0652cc439e732634ddb168c8ab990",
+    "scripts/render_report.py": "57569075f128aeb716d9ebdb533e316b70affb74d73fa2a8c63e42b84d115b0f",
+    "scripts/validate_config.py": "ab86faab5c49d4ba9fedb45e50caf18a20a1b2ff1947684efd032be605a96ad5"
+  },
+  "technical_status": "passed",
+  "audited_at": "2026-10-27T11:12:56+08:00",
+  "evidence_binding": {
+    "report.json": "9647b30ce8f0361a75b95b9501bb3a5f9bcddaf33a6ad1e6eefe56ef2751f13b",
+    "report.html": "35fed9a03a37e54c2a4ab70b751656f727b62ce20419d6dbe9065bd5fe26b944",
+    "report.md": "3b965d817b713390346b9c687c9daa66c3ab0c17f303816c80a83c867f8cfc61",
+    "calls.json": "8ef0c25f225b73975e3643fd3d076157b49f31e6e3da8d44e6648c481c42a643",
+    "result.json": "603d56eb9a20156a458f4a7596a8a8cf43dbe6fe657d3b584a95ee916687dea4",
+    "source_manifest_sha256": "014e0c39ccd221d4b037bfafc75dc705b73521da54c003be18fa8ca62d4dab92"
+  }
+}

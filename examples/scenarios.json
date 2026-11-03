@@ -1,0 +1,108 @@
+{
+  "skill": "building-skill",
+  "kind": "verified_positive_examples",
+  "run_id": "live-replaced-20261027",
+  "source_manifest": "../test-records/scenarios-20261027.json",
+  "scenarios": [
+    {
+      "id": "01-developer-office-network",
+      "title": "地产集团办公网络",
+      "user_request": "请分析万科企业股份有限公司的办公地址分布和关联楼宇。",
+      "purpose": "集团办公网络与区域覆盖判断",
+      "args": [
+        "--enterprise",
+        "万科企业股份有限公司",
+        "--page-size",
+        "10"
+      ],
+      "expected_checks": [
+        "办公地址详情和城市统计互相可核对",
+        "关联楼宇仅使用 MCP 返回的 estateId 去重",
+        "入驻方式与来源字段保持原值语义",
+        "不把办公地址解释为资产所有权"
+      ],
+      "limitations": [
+        "办公地址不代表物业所有权或实际持续办公",
+        "关联楼宇取决于地址数据中的楼宇名称"
+      ]
+    },
+    {
+      "id": "03-guangzhou-office-filter",
+      "title": "广州写字楼筛选",
+      "user_request": "请分析华为技术有限公司在广东省广州市的办公记录，并查看当地写字楼结果。",
+      "purpose": "区域客户拜访与办公选址线索",
+      "args": [
+        "--enterprise",
+        "华为技术有限公司",
+        "--address",
+        "广东省,广州市",
+        "--property-type",
+        "写字楼",
+        "--page-size",
+        "8"
+      ],
+      "expected_checks": [
+        "办公详情应用广州地区过滤",
+        "楼宇查询应用地区和写字楼类型",
+        "企业办公记录与区域楼宇市场结果分章节",
+        "不得把区域楼宇列表都归属于该企业"
+      ],
+      "limitations": [
+        "带地区/类型时楼宇查询是区域市场结果，不天然与企业有关联",
+        "地址文本匹配可能遗漏行政区写法不同的记录"
+      ]
+    },
+    {
+      "id": "04-shenzhen-industrial-park",
+      "title": "深圳产业园筛选",
+      "user_request": "请查看比亚迪股份有限公司在广东省深圳市的办公地址，并筛选产业园楼宇。",
+      "purpose": "供应链拜访与产业集聚研究",
+      "args": [
+        "--enterprise",
+        "比亚迪股份有限公司",
+        "--address",
+        "广东省,深圳市",
+        "--property-type",
+        "产业园",
+        "--page-size",
+        "10"
+      ],
+      "expected_checks": [
+        "企业办公明细和产业园查询分别标明口径",
+        "楼宇类型为产业园",
+        "地区限制为深圳市",
+        "报告不输出未返回的 estateId 或推造关联"
+      ],
+      "limitations": [
+        "产业园检索是地点线索而非厂区权属证明",
+        "办公地址数据不等同于生产基地清单"
+      ]
+    },
+    {
+      "id": "09-hangzhou-complex-market-scan",
+      "title": "杭州综合体市场候选清单",
+      "user_request": "以杭州商务拜访选址为背景，请单独筛选杭州市综合体楼宇候选，列出实际返回的楼宇名称，并按可用字段补充地址或物业类型；不要把市场候选解释为阿里巴巴的办公地址。",
+      "purpose": "以实际楼宇名称及可用地址/物业字段形成杭州综合体市场初筛清单，并隔离企业办公关联口径。",
+      "args": [
+        "--enterprise",
+        "阿里巴巴（中国）有限公司",
+        "--address",
+        "浙江省,杭州市",
+        "--property-type",
+        "综合体",
+        "--page-size",
+        "8"
+      ],
+      "expected_checks": [
+        "独立楼宇查询必须成功并返回非空楼宇记录",
+        "至少一条楼宇记录须有非空楼宇名称；地址或物业类型仅在同一记录实际返回时补充展示",
+        "报告须标明 independent_market_filter，楼宇候选不得归属到查询企业",
+        "企业办公详情为空时不得生成企业杭州办公结论"
+      ],
+      "limitations": [
+        "当前 CLI 仍要求 enterprise 参数，该参数仅提供业务背景，不能作为楼宇关联条件",
+        "市场候选需后续核验可租赁性、价格和实际用途"
+      ]
+    }
+  ]
+}

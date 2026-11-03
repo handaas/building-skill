@@ -1,0 +1,60 @@
+{
+  "metric_overflows": [],
+  "document_title": "华为技术有限公司 楼宇大数据报告",
+  "title_matches": true,
+  "charts": 5,
+  "rendered_charts": 5,
+  "zero_size_charts": 0,
+  "chart_details": [
+    {
+      "width": 984,
+      "height": 300,
+      "instance": true,
+      "renderer": true,
+      "graphics": 17
+    },
+    {
+      "width": 984,
+      "height": 300,
+      "instance": true,
+      "renderer": true,
+      "graphics": 511
+    },
+    {
+      "width": 984,
+      "height": 300,
+      "instance": true,
+      "renderer": true,
+      "graphics": 7
+    },
+    {
+      "width": 984,
+      "height": 300,
+      "instance": true,
+      "renderer": true,
+      "graphics": 13
+    },
+    {
+      "width": 984,
+      "height": 300,
+      "instance": true,
+      "renderer": true,
+      "graphics": 17
+    }
+  ],
+  "page_width": 1905,
+  "viewport_width": 1920,
+  "empty_headers": 0,
+  "script_errors": [],
+  "external_resources": 0,
+  "external_asset_references": 0,
+  "ok": true,
+  "report_html_sha256": "793c3a1c0893804b9b1c1ad432d4e28db7132c78d27ed586660ea42568a4018e",
+  "report_json_sha256": "eb31b328bbf51a67759f523289697e6b9097f39d25bcbefb7565247d54810787",
+  "skill": "building-skill",
+  "id": "03-guangzhou-office-filter",
+  "browser": "Ego Lite",
+  "space_id": 4,
+  "offline": true,
+  "checked_at": "2026-10-27T03:02:10.791Z"
+}

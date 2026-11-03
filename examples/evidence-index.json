@@ -1,0 +1,77 @@
+{
+  "run_id": "live-replaced-20261027",
+  "cases": [
+    {
+      "skill": "building-skill",
+      "id": "01-developer-office-network",
+      "status": "passed",
+      "positive_business_pass": true,
+      "files_sha256": {
+        "report.json": "1d0f8738b3c179f7593ca34ecdac9a791bccbd70b77aadedf6888d10eed46546",
+        "report.html": "d0ab2cb34668a3545d363bf7ffed9ffeccf9388f8bdb3625ae50d5c2beb832ba",
+        "report.md": "367c7a5e27b8a9de8a86c2d6cbcba0df521349352d128fe9cb8d9845b991c90b",
+        "calls.json": "098cfe717e32e922adfc561ef6854e66bdf72417dcca99851cf098e45495de3c",
+        "result.json": "d5fbab5bc5b784732af22c9d6c93c9b8ca133f91dbba701ea667b01f8efd58bf",
+        "audit.json": "fc4d95560b4c52145d37ae6fbcac50da1dd9b69c626555bc062c731cfb09cffb",
+        "acceptance.json": "b7e9e32088f8e3a404c503fa0fef2ba50a3d77faf480ce0cd8d0c3f585fc022c",
+        "business-review.json": "49814ec299d152189575b81ca7abd28b2d80aa26b66a974b7efca7b71a2a1cc5",
+        "browser-check.json": "2170209ad1bdab8ba12038d891a125b60f2efcc87ba0f7ea5efdba748332cc48"
+      },
+      "audit_record": "../../test-records/live-replaced-20261027/01-developer-office-network.md"
+    },
+    {
+      "skill": "building-skill",
+      "id": "03-guangzhou-office-filter",
+      "status": "passed",
+      "positive_business_pass": true,
+      "files_sha256": {
+        "report.json": "eb31b328bbf51a67759f523289697e6b9097f39d25bcbefb7565247d54810787",
+        "report.html": "793c3a1c0893804b9b1c1ad432d4e28db7132c78d27ed586660ea42568a4018e",
+        "report.md": "9c2cd5a4fb0750be9f1d55dcd72ed66406c576339a06adf4bd73f56313ba32ec",
+        "calls.json": "d926a9d6fd12e5219c6aef0e774c51aa7f2db77dfeb91d2b47d8d73988c9594b",
+        "result.json": "9486bdb70f854762f815f393f945908ecd5ca20959da69736d1911b9299dd38a",
+        "audit.json": "5b7d4ca0588554f50ce51670368f6d8fee898cc3802116fdd7baa5fd0eb7d4e2",
+        "acceptance.json": "8525aef99ec09ee70ac76cbec89777d3591b121e477d6fd189cc0c3052ce8301",
+        "business-review.json": "977167fda11e5a2ac5883ef7c7311816ced7c35856f0b3058c6849394f550520",
+        "browser-check.json": "856e3b4a3b34aea509cc13c12693ce31fb9b100c5905e06d7c58c8e844338ce4"
+      },
+      "audit_record": "../../test-records/live-replaced-20261027/03-guangzhou-office-filter.md"
+    },
+    {
+      "skill": "building-skill",
+      "id": "04-shenzhen-industrial-park",
+      "status": "passed",
+      "positive_business_pass": true,
+      "files_sha256": {
+        "report.json": "9647b30ce8f0361a75b95b9501bb3a5f9bcddaf33a6ad1e6eefe56ef2751f13b",
+        "report.html": "35fed9a03a37e54c2a4ab70b751656f727b62ce20419d6dbe9065bd5fe26b944",
+        "report.md": "3b965d817b713390346b9c687c9daa66c3ab0c17f303816c80a83c867f8cfc61",
+        "calls.json": "8ef0c25f225b73975e3643fd3d076157b49f31e6e3da8d44e6648c481c42a643",
+        "result.json": "603d56eb9a20156a458f4a7596a8a8cf43dbe6fe657d3b584a95ee916687dea4",
+        "audit.json": "5cce5ca44e9de441eafa46693c4ecbdef2681a92b0de4035ce10ae35c18ccbc4",
+        "acceptance.json": "bb7cb479bf7fc0def2356c585f5f08aa97501e6548591a8aa4b273c2140ece6c",
+        "business-review.json": "bdebe758f0b634a3e0d83b0bbb59b83a630948134b3ce80dd74a2cac4fe5ad59",
+        "browser-check.json": "7baab1ea616be17197a9e4f3018dc5191c267135796bd3c9411932b8cf990042"
+      },
+      "audit_record": "../../test-records/live-replaced-20261027/04-shenzhen-industrial-park.md"
+    },
+    {
+      "skill": "building-skill",
+      "id": "09-hangzhou-complex-market-scan",
+      "status": "passed",
+      "positive_business_pass": true,
+      "files_sha256": {
+        "report.json": "8675b7e4558535add950cbe79efd4f62d5f0ff1a944ac6188ab1fbcd13b921ef",
+        "report.html": "adae221ccd54cbdd3deb718f515e7f5946cb6b5c9bc3dee3b261eeaa0bb91690",
+        "report.md": "44d59312ab912bc3f9d8cd84b7457a6dc50c1b3f0362fa70b992277b78d0f3b5",
+        "calls.json": "67f9291a1553012032484204be88698af186c2a22ab0eb1b94871c16b758e55f",
+        "result.json": "a5c6c6c75a5da2224ca99c175a4d07c31f243ffd29358a15e573533abca46261",
+        "audit.json": "6f41b449947bfd6d3c8df63f2fe168d63586395ade37557f8f409d766547c0e2",
+        "acceptance.json": "8b3db63f3754e711420edf11b0468d2cc828769926d75c3306928cccfe000f62",
+        "business-review.json": "b4d8f8067649f89578800b351e20cb09ef78b102f671d4b6407346f2252f5501",
+        "browser-check.json": "a4d80181eb17d7df3420145c38798efc74c4f3806ee4e25638e9276452b400f4"
+      },
+      "audit_record": "../../test-records/live-replaced-20261027/09-hangzhou-complex-market-scan.md"
+    }
+  ]
+}

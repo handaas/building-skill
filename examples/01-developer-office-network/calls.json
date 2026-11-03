@@ -1,0 +1,657 @@
+[
+  {
+    "tool": "building_bigdata_fuzzy_search",
+    "domain": null,
+    "arguments": {
+      "matchKeyword": "万科企业股份有限公司",
+      "pageSize": 1
+    },
+    "invocation_id": "1793070045315188000",
+    "elapsed_seconds": 0.672,
+    "status": "data",
+    "error_category": null,
+    "result_type": "dict",
+    "top_level_fields": [
+      "resultList",
+      "total"
+    ],
+    "row_count": 1,
+    "reported_total": 198,
+    "numeric_evidence": [
+      {
+        "path": "resultList[0].regCapitalValue",
+        "value": 11930709471.0
+      },
+      {
+        "path": "total",
+        "value": 198
+      }
+    ],
+    "response_sha256": "d998d0869050d6cf7145d2b9ebc96ca29f9408f802285e66d6f1138b1cd3d7fe"
+  },
+  {
+    "tool": "building_bigdata_office_address_details",
+    "domain": null,
+    "arguments": {
+      "matchKeyword": "万科企业股份有限公司",
+      "keywordType": "name",
+      "pageIndex": 1,
+      "pageSize": 10
+    },
+    "invocation_id": "1793070045315188000",
+    "elapsed_seconds": 0.249,
+    "status": "data",
+    "error_category": null,
+    "result_type": "dict",
+    "top_level_fields": [
+      "resultList",
+      "total"
+    ],
+    "row_count": 10,
+    "reported_total": 13,
+    "numeric_evidence": [
+      {
+        "path": "total",
+        "value": 13
+      }
+    ],
+    "response_sha256": "7ef0bba2dc37cbaa8dcd710f51065bf87fbf0e6c88bca8ebc8850c330fcc8f25"
+  },
+  {
+    "tool": "building_bigdata_office_address_stats",
+    "domain": null,
+    "arguments": {
+      "matchKeyword": "万科企业股份有限公司",
+      "keywordType": "name"
+    },
+    "invocation_id": "1793070045315188000",
+    "elapsed_seconds": 0.238,
+    "status": "data",
+    "error_category": null,
+    "result_type": "dict",
+    "top_level_fields": [
+      "officeCityStats",
+      "cityCount"
+    ],
+    "row_count": null,
+    "reported_total": null,
+    "numeric_evidence": [
+      {
+        "path": "officeCityStats[0].count",
+        "value": 4
+      },
+      {
+        "path": "officeCityStats[1].count",
+        "value": 2
+      },
+      {
+        "path": "officeCityStats[2].count",
+        "value": 2
+      },
+      {
+        "path": "officeCityStats[3].count",
+        "value": 1
+      },
+      {
+        "path": "officeCityStats[4].count",
+        "value": 1
+      },
+      {
+        "path": "cityCount",
+        "value": 8
+      }
+    ],
+    "response_sha256": "4476a37a35c7a5652d38512fec716c88b775e75c92cdf1a278449478f89b5736"
+  },
+  {
+    "tool": "building_bigdata_building_basic_info",
+    "domain": null,
+    "arguments": {
+      "matchKeyword": "407aa79540860faa"
+    },
+    "invocation_id": "1793070045315188000",
+    "elapsed_seconds": 0.517,
+    "status": "data",
+    "error_category": null,
+    "result_type": "dict",
+    "top_level_fields": [
+      "estateName",
+      "estateAliasName",
+      "estateAddress",
+      "estateDeveloper",
+      "estatePropertyEnterprise",
+      "estateBusinessCircle",
+      "estateBuildingArea",
+      "estateCompletionTime",
+      "estateTotalLayer",
+      "estateParkingSpace",
+      "estatePropertyCosts",
+      "estateLiftQuantity",
+      "estateAverageRentPrice",
+      "estateRentAreaRange",
+      "estateEnterpriseCount",
+      "estatePropertyType"
+    ],
+    "row_count": null,
+    "reported_total": null,
+    "numeric_evidence": [
+      {
+        "path": "estateTotalLayer[0].quantity",
+        "value": 20
+      },
+      {
+        "path": "estateParkingSpace[0].quantity",
+        "value": 800
+      },
+      {
+        "path": "estatePropertyCosts.price.max",
+        "value": 15.0
+      },
+      {
+        "path": "estatePropertyCosts.price.min",
+        "value": 15.0
+      },
+      {
+        "path": "estateLiftQuantity[0].quantity",
+        "value": 2
+      },
+      {
+        "path": "estateLiftQuantity[1].quantity",
+        "value": 2
+      },
+      {
+        "path": "estateAverageRentPrice.price.max",
+        "value": 113.68
+      },
+      {
+        "path": "estateAverageRentPrice.price.min",
+        "value": 113.68
+      },
+      {
+        "path": "estateRentAreaRange.min",
+        "value": 167.1
+      },
+      {
+        "path": "estateRentAreaRange.max",
+        "value": 607.72
+      },
+      {
+        "path": "estateEnterpriseCount",
+        "value": 139
+      }
+    ],
+    "response_sha256": "9804ad5d056a676d3d2b088fe8b8a351d651dd3e89c6f545a10937168fdf8eaf"
+  },
+  {
+    "tool": "building_bigdata_building_basic_info",
+    "domain": null,
+    "arguments": {
+      "matchKeyword": "42b03f5754e73b48"
+    },
+    "invocation_id": "1793070045315188000",
+    "elapsed_seconds": 0.64,
+    "status": "data",
+    "error_category": null,
+    "result_type": "dict",
+    "top_level_fields": [
+      "estateAddress",
+      "estateAliasName",
+      "estateAverageRentPrice",
+      "estateBuildingArea",
+      "estateBusinessCircle",
+      "estateDeveloper",
+      "estateEnterpriseCount",
+      "estateLiftQuantity",
+      "estateName",
+      "estateParkingSpace",
+      "estatePropertyCosts",
+      "estatePropertyEnterprise",
+      "estatePropertyType",
+      "estateRentAreaRange",
+      "estateTotalLayer"
+    ],
+    "row_count": null,
+    "reported_total": null,
+    "numeric_evidence": [
+      {
+        "path": "estateAverageRentPrice.price.max",
+        "value": 77.9
+      },
+      {
+        "path": "estateAverageRentPrice.price.min",
+        "value": 77.9
+      },
+      {
+        "path": "estateEnterpriseCount",
+        "value": 201
+      },
+      {
+        "path": "estateLiftQuantity[0].quantity",
+        "value": 5
+      },
+      {
+        "path": "estateLiftQuantity[1].quantity",
+        "value": 1
+      },
+      {
+        "path": "estateParkingSpace[0].quantity",
+        "value": 500
+      },
+      {
+        "path": "estatePropertyCosts.price.max",
+        "value": 2.0
+      },
+      {
+        "path": "estatePropertyCosts.price.min",
+        "value": 2.0
+      },
+      {
+        "path": "estateRentAreaRange.min",
+        "value": 35
+      },
+      {
+        "path": "estateRentAreaRange.max",
+        "value": 1500
+      },
+      {
+        "path": "estateTotalLayer[0].quantity",
+        "value": 24
+      }
+    ],
+    "response_sha256": "1ff1ce746765ef7c3cfc058eec6399a7a17351500c1b94a9eb4d26fc09c13dbf"
+  },
+  {
+    "tool": "building_bigdata_building_basic_info",
+    "domain": null,
+    "arguments": {
+      "matchKeyword": "48fa4dfbf54754bc"
+    },
+    "invocation_id": "1793070045315188000",
+    "elapsed_seconds": 0.986,
+    "status": "data",
+    "error_category": null,
+    "result_type": "dict",
+    "top_level_fields": [
+      "estateAddress",
+      "estateAliasName",
+      "estateEnterpriseCount",
+      "estateName",
+      "estatePropertyType"
+    ],
+    "row_count": null,
+    "reported_total": null,
+    "numeric_evidence": [
+      {
+        "path": "estateEnterpriseCount",
+        "value": 282
+      }
+    ],
+    "response_sha256": "d8daa35d0c3bf1089160ff0a4d3d1506ce2e4cbaa825135677c78b6fbe18bc76"
+  },
+  {
+    "tool": "building_bigdata_building_basic_info",
+    "domain": null,
+    "arguments": {
+      "matchKeyword": "492dd2642b3275fb"
+    },
+    "invocation_id": "1793070045315188000",
+    "elapsed_seconds": 1.41,
+    "status": "data",
+    "error_category": null,
+    "result_type": "dict",
+    "top_level_fields": [
+      "estateName",
+      "estateAliasName",
+      "estateAddress",
+      "estateEnterpriseCount",
+      "estatePropertyType"
+    ],
+    "row_count": null,
+    "reported_total": null,
+    "numeric_evidence": [
+      {
+        "path": "estateEnterpriseCount",
+        "value": 21
+      }
+    ],
+    "response_sha256": "068d060b461069cdc5913b4dc7a9d0b09447c876a79f0ffcb4569ee38f3da97f"
+  },
+  {
+    "tool": "building_bigdata_building_basic_info",
+    "domain": null,
+    "arguments": {
+      "matchKeyword": "8b368c33dc5c8918"
+    },
+    "invocation_id": "1793070045315188000",
+    "elapsed_seconds": 0.766,
+    "status": "data",
+    "error_category": null,
+    "result_type": "dict",
+    "top_level_fields": [
+      "estateAddress",
+      "estateAliasName",
+      "estateAverageRentPrice",
+      "estateBuildingArea",
+      "estateBusinessCircle",
+      "estateCompletionTime",
+      "estateDeveloper",
+      "estateEnterpriseCount",
+      "estateLiftQuantity",
+      "estateName",
+      "estateParkingSpace",
+      "estatePropertyCosts",
+      "estatePropertyEnterprise",
+      "estatePropertyType",
+      "estateRentAreaRange",
+      "estateTotalLayer"
+    ],
+    "row_count": null,
+    "reported_total": null,
+    "numeric_evidence": [
+      {
+        "path": "estateAverageRentPrice.price.max",
+        "value": 139.62
+      },
+      {
+        "path": "estateAverageRentPrice.price.min",
+        "value": 139.62
+      },
+      {
+        "path": "estateEnterpriseCount",
+        "value": 331
+      },
+      {
+        "path": "estateLiftQuantity[0].quantity",
+        "value": 8
+      },
+      {
+        "path": "estateParkingSpace[0].quantity",
+        "value": 421
+      },
+      {
+        "path": "estatePropertyCosts.price.max",
+        "value": 20
+      },
+      {
+        "path": "estatePropertyCosts.price.min",
+        "value": 20
+      },
+      {
+        "path": "estateRentAreaRange.min",
+        "value": 1
+      },
+      {
+        "path": "estateRentAreaRange.max",
+        "value": 1223
+      },
+      {
+        "path": "estateTotalLayer[0].quantity",
+        "value": 50
+      }
+    ],
+    "response_sha256": "96a141b08a8ffe68142f7cb9f387c15bd5d1c19bad8964cb287808bc07f66f69"
+  },
+  {
+    "tool": "building_bigdata_building_basic_info",
+    "domain": null,
+    "arguments": {
+      "matchKeyword": "9d6351f08ee84595"
+    },
+    "invocation_id": "1793070045315188000",
+    "elapsed_seconds": 1.207,
+    "status": "data",
+    "error_category": null,
+    "result_type": "dict",
+    "top_level_fields": [
+      "estateAddress",
+      "estateAliasName",
+      "estateAverageRentPrice",
+      "estateBusinessCircle",
+      "estateCompletionTime",
+      "estateEnterpriseCount",
+      "estateLiftQuantity",
+      "estateName",
+      "estateParkingSpace",
+      "estatePropertyCosts",
+      "estatePropertyEnterprise",
+      "estatePropertyType",
+      "estateRentAreaRange",
+      "estateTotalLayer"
+    ],
+    "row_count": null,
+    "reported_total": null,
+    "numeric_evidence": [
+      {
+        "path": "estateAverageRentPrice.price.max",
+        "value": 99.0
+      },
+      {
+        "path": "estateAverageRentPrice.price.min",
+        "value": 99.0
+      },
+      {
+        "path": "estateEnterpriseCount",
+        "value": 85
+      },
+      {
+        "path": "estateLiftQuantity[0].quantity",
+        "value": 2
+      },
+      {
+        "path": "estateLiftQuantity[1].quantity",
+        "value": 0
+      },
+      {
+        "path": "estateParkingSpace[0].quantity",
+        "value": 400
+      },
+      {
+        "path": "estatePropertyCosts.price.max",
+        "value": 22
+      },
+      {
+        "path": "estatePropertyCosts.price.min",
+        "value": 22
+      },
+      {
+        "path": "estateRentAreaRange.min",
+        "value": 150
+      },
+      {
+        "path": "estateRentAreaRange.max",
+        "value": 150
+      },
+      {
+        "path": "estateTotalLayer[0].quantity",
+        "value": 12
+      },
+      {
+        "path": "estateTotalLayer[1].quantity",
+        "value": 12
+      }
+    ],
+    "response_sha256": "78a1dc9b15f58367b608841b012b9889555af583d6bc30a6bf3882892a25a98e"
+  },
+  {
+    "tool": "building_bigdata_building_basic_info",
+    "domain": null,
+    "arguments": {
+      "matchKeyword": "b6ed74bfaf7c06cc"
+    },
+    "invocation_id": "1793070045315188000",
+    "elapsed_seconds": 0.351,
+    "status": "data",
+    "error_category": null,
+    "result_type": "dict",
+    "top_level_fields": [
+      "estateAddress",
+      "estateAliasName",
+      "estateAverageRentPrice",
+      "estateBuildingArea",
+      "estateBusinessCircle",
+      "estateEnterpriseCount",
+      "estateName",
+      "estatePropertyType",
+      "estateTotalLayer"
+    ],
+    "row_count": null,
+    "reported_total": null,
+    "numeric_evidence": [
+      {
+        "path": "estateAverageRentPrice.price.max",
+        "value": 45.0
+      },
+      {
+        "path": "estateAverageRentPrice.price.min",
+        "value": 45.0
+      },
+      {
+        "path": "estateEnterpriseCount",
+        "value": 30
+      },
+      {
+        "path": "estateTotalLayer[0].quantity",
+        "value": 2
+      }
+    ],
+    "response_sha256": "25f250688f150190afcdfa189f9b12156b4c0da1e830455e76daede98ec53308"
+  },
+  {
+    "tool": "building_bigdata_building_basic_info",
+    "domain": null,
+    "arguments": {
+      "matchKeyword": "d144fc5820d38c6f"
+    },
+    "invocation_id": "1793070045315188000",
+    "elapsed_seconds": 0.912,
+    "status": "data",
+    "error_category": null,
+    "result_type": "dict",
+    "top_level_fields": [
+      "estateName",
+      "estateAddress",
+      "estateEnterpriseCount",
+      "estatePropertyType"
+    ],
+    "row_count": null,
+    "reported_total": null,
+    "numeric_evidence": [
+      {
+        "path": "estateEnterpriseCount",
+        "value": 150
+      }
+    ],
+    "response_sha256": "467168500bcddc0a0c3e1262320e7788fcf15baf5eafc051598f40c764427dd0"
+  },
+  {
+    "tool": "building_bigdata_building_basic_info",
+    "domain": null,
+    "arguments": {
+      "matchKeyword": "d9b1bb10de28f662"
+    },
+    "invocation_id": "1793070045315188000",
+    "elapsed_seconds": 0.998,
+    "status": "data",
+    "error_category": null,
+    "result_type": "dict",
+    "top_level_fields": [
+      "estateName",
+      "estateAddress",
+      "estateBuildingArea",
+      "estateEnterpriseCount",
+      "estatePropertyType"
+    ],
+    "row_count": null,
+    "reported_total": null,
+    "numeric_evidence": [
+      {
+        "path": "estateEnterpriseCount",
+        "value": 133
+      }
+    ],
+    "response_sha256": "027dde78957253db8c21aa3bfdccebf982ea8ceecc1ec80bb34452298e81a3a3"
+  },
+  {
+    "tool": "building_bigdata_building_basic_info",
+    "domain": null,
+    "arguments": {
+      "matchKeyword": "eaab2f7b196694df"
+    },
+    "invocation_id": "1793070045315188000",
+    "elapsed_seconds": 0.527,
+    "status": "data",
+    "error_category": null,
+    "result_type": "dict",
+    "top_level_fields": [
+      "estateAddress",
+      "estateAliasName",
+      "estateAverageRentPrice",
+      "estateBuildingArea",
+      "estateBusinessCircle",
+      "estateCompletionTime",
+      "estateDeveloper",
+      "estateEnterpriseCount",
+      "estateLiftQuantity",
+      "estateName",
+      "estateParkingSpace",
+      "estatePropertyCosts",
+      "estatePropertyEnterprise",
+      "estatePropertyType",
+      "estateRentAreaRange",
+      "estateTotalLayer"
+    ],
+    "row_count": null,
+    "reported_total": null,
+    "numeric_evidence": [
+      {
+        "path": "estateAverageRentPrice.price.max",
+        "value": 58.0
+      },
+      {
+        "path": "estateAverageRentPrice.price.min",
+        "value": 58.0
+      },
+      {
+        "path": "estateEnterpriseCount",
+        "value": 1217
+      },
+      {
+        "path": "estateLiftQuantity[0].quantity",
+        "value": 12
+      },
+      {
+        "path": "estateParkingSpace[0].quantity",
+        "value": 2000
+      },
+      {
+        "path": "estatePropertyCosts.price.max",
+        "value": 18.0
+      },
+      {
+        "path": "estatePropertyCosts.price.min",
+        "value": 18.0
+      },
+      {
+        "path": "estateRentAreaRange.min",
+        "value": 110
+      },
+      {
+        "path": "estateRentAreaRange.max",
+        "value": 600
+      },
+      {
+        "path": "estateTotalLayer[0].quantity",
+        "value": 39
+      },
+      {
+        "path": "estateTotalLayer[1].quantity",
+        "value": 3
+      },
+      {
+        "path": "estateTotalLayer[2].quantity",
+        "value": 42
+      }
+    ],
+    "response_sha256": "a7dff40b34b41ad8d1c33b79e161a76d407cd96d5761a8172fb36518a3733b4d"
+  }
+]

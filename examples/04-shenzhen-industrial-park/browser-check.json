@@ -1,0 +1,60 @@
+{
+  "metric_overflows": [],
+  "document_title": "比亚迪股份有限公司 楼宇大数据报告",
+  "title_matches": true,
+  "charts": 5,
+  "rendered_charts": 5,
+  "zero_size_charts": 0,
+  "chart_details": [
+    {
+      "width": 984,
+      "height": 300,
+      "instance": true,
+      "renderer": true,
+      "graphics": 21
+    },
+    {
+      "width": 984,
+      "height": 300,
+      "instance": true,
+      "renderer": true,
+      "graphics": 235
+    },
+    {
+      "width": 984,
+      "height": 300,
+      "instance": true,
+      "renderer": true,
+      "graphics": 13
+    },
+    {
+      "width": 984,
+      "height": 300,
+      "instance": true,
+      "renderer": true,
+      "graphics": 19
+    },
+    {
+      "width": 984,
+      "height": 300,
+      "instance": true,
+      "renderer": true,
+      "graphics": 19
+    }
+  ],
+  "page_width": 1905,
+  "viewport_width": 1920,
+  "empty_headers": 0,
+  "script_errors": [],
+  "external_resources": 0,
+  "external_asset_references": 0,
+  "ok": true,
+  "report_html_sha256": "35fed9a03a37e54c2a4ab70b751656f727b62ce20419d6dbe9065bd5fe26b944",
+  "report_json_sha256": "9647b30ce8f0361a75b95b9501bb3a5f9bcddaf33a6ad1e6eefe56ef2751f13b",
+  "skill": "building-skill",
+  "id": "04-shenzhen-industrial-park",
+  "browser": "Ego Lite",
+  "space_id": 4,
+  "offline": true,
+  "checked_at": "2026-10-27T03:02:11.980Z"
+}
