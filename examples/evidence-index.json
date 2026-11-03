@@ -17,7 +17,7 @@
         "business-review.json": "49814ec299d152189575b81ca7abd28b2d80aa26b66a974b7efca7b71a2a1cc5",
         "browser-check.json": "2170209ad1bdab8ba12038d891a125b60f2efcc87ba0f7ea5efdba748332cc48"
       },
-      "audit_record": "../../test-records/live-replaced-20261027/01-developer-office-network.md"
+      "audit_record": "../test-records/live-replaced-20261027/01-developer-office-network.md"
     },
     {
       "skill": "building-skill",
@@ -35,7 +35,7 @@
         "business-review.json": "977167fda11e5a2ac5883ef7c7311816ced7c35856f0b3058c6849394f550520",
         "browser-check.json": "856e3b4a3b34aea509cc13c12693ce31fb9b100c5905e06d7c58c8e844338ce4"
       },
-      "audit_record": "../../test-records/live-replaced-20261027/03-guangzhou-office-filter.md"
+      "audit_record": "../test-records/live-replaced-20261027/03-guangzhou-office-filter.md"
     },
     {
       "skill": "building-skill",
@@ -53,7 +53,7 @@
         "business-review.json": "bdebe758f0b634a3e0d83b0bbb59b83a630948134b3ce80dd74a2cac4fe5ad59",
         "browser-check.json": "7baab1ea616be17197a9e4f3018dc5191c267135796bd3c9411932b8cf990042"
       },
-      "audit_record": "../../test-records/live-replaced-20261027/04-shenzhen-industrial-park.md"
+      "audit_record": "../test-records/live-replaced-20261027/04-shenzhen-industrial-park.md"
     },
     {
       "skill": "building-skill",
@@ -71,7 +71,7 @@
         "business-review.json": "b4d8f8067649f89578800b351e20cb09ef78b102f671d4b6407346f2252f5501",
         "browser-check.json": "a4d80181eb17d7df3420145c38798efc74c4f3806ee4e25638e9276452b400f4"
       },
-      "audit_record": "../../test-records/live-replaced-20261027/09-hangzhou-complex-market-scan.md"
+      "audit_record": "../test-records/live-replaced-20261027/09-hangzhou-complex-market-scan.md"
     }
   ]
 }
