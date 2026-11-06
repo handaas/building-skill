@@ -17,6 +17,7 @@ This file never prints secrets; MCP credentials live in the server's own .env.
 from __future__ import annotations
 
 import argparse
+import copy
 import datetime as dt
 import json
 import pathlib
@@ -267,27 +268,39 @@ def build_metrics(details: Any, stats: Any, building: Any, profile: Optional[Map
     b_total = _int(_safe_total(building)) if isinstance(building, dict) else None
 
     # --- Office address metrics ---
-    metrics.append({"label": "办公地址总数", "value": (_text(d_total) if d_total is not None else "-"), "hint": "企业办公地址总数"})
+    detail_label = "筛选地区办公地址数" if filtered else "办公地址总数"
+    detail_hint = ("本次地区筛选命中的办公地址数，不是企业全国总数" if filtered else "企业办公地址总数")
+    metrics.append({"label": detail_label, "value": (_text(d_total) if d_total is not None else "-"), "hint": detail_hint})
     if not filtered and city_count and d_total:
         metrics.append({"label": "覆盖城市数", "value": _text(city_count), "hint": "办公地址所涉城市数", "delta": f"地均 {d_total / city_count:.1f} 个/城"})
     elif not filtered and city_count:
         metrics.append({"label": "覆盖城市数", "value": _text(city_count), "hint": "办公地址所涉城市数"})
 
-    # Province count (derived)
+    # Province count (derived from the detail page; scope follows that page)
     province_rows = _office_province_rows(details)
     if province_rows:
-        metrics.append({"label": "覆盖省份数", "value": str(len(province_rows)), "hint": "办公地址所涉省份数"})
+        metrics.append({
+            "label": "筛选地区覆盖省份数" if filtered else "覆盖省份数",
+            "value": str(len(province_rows)),
+            "hint": "仅按筛选后明细去重，不代表企业全国省份覆盖" if filtered else "办公地址所涉省份数",
+        })
 
-    # CR3 city concentration
-    stat_rows = [] if filtered else _office_stat_rows(stats)
+    # CR3 city concentration (national stats are valid even when details are filtered)
+    stat_rows = _office_stat_rows(stats)
     if stat_rows:
         conc = _concentration(stat_rows, "城市", "办公地址数量", 3)
         if conc:
-            metrics.append({"label": "CR3城市集中度", "value": f"{conc['cr']:.0f}%", "hint": f"前3城市合计，TOP1：{conc['top']}"})
+            metrics.append({
+                "label": "全国统计CR3" if filtered else "CR3城市集中度",
+                "value": f"{conc['cr']:.0f}%",
+                "hint": (f"全国城市统计前3合计，TOP1：{conc['top']}；与筛选明细不可交叉计算"
+                         if filtered else f"前3城市合计，TOP1：{conc['top']}"),
+                "scope": "national_stats",
+            })
 
     # --- Building metrics ---
     if b_total is not None and b_total > 0:
-        metrics.append({"label": "筛选楼宇命中量" if market_building_query else "明确ID关联楼宇数", "value": _text(b_total), "hint": "独立楼宇筛选结果，不代表企业关联" if market_building_query else "仅统计办公地址明细明确返回楼宇ID的记录"})
+        metrics.append({"label": "筛选楼宇命中量" if market_building_query else "明确ID关联楼宇数", "value": _text(b_total), "hint": "独立楼宇筛选结果，不代表企业关联" if market_building_query else "仅统计办公地址明细明确返回楼宇ID的记录", "scope": "market" if market_building_query else "enterprise"})
 
     # --- Enterprise profile metrics ---
     if profile:
@@ -501,6 +514,7 @@ def build_core_analysis(details: Any, stats: Any, building: Any, *, filtered: bo
         "source_type": source_type_rows,
         "building_query": building_rows,
         "building_type": building_type_rows,
+        "building_query_scope": "market_filter" if market_building_query else "enterprise_association",
         "scope_note": "地区筛选仅作用于办公地址明细与楼宇查询；办公地址城市统计为全国口径。" if filtered else "办公地址明细与统计均按企业主体查询。",
     }
 
@@ -520,9 +534,10 @@ def build_records(core: Mapping[str, Any]) -> List[Dict[str, Any]]:
 def build_insights(subject: Mapping[str, Any], core: Mapping[str, Any], metrics: Sequence[Mapping[str, Any]], profile: Optional[Mapping[str, Any]] = None) -> List[Dict[str, Any]]:
     insights: List[Dict[str, Any]] = []
     metric_map = {m["label"]: str(m["value"]) for m in metrics}
-    addr_total = metric_map.get("办公地址总数")
+    addr_total = metric_map.get("办公地址总数") or metric_map.get("筛选地区办公地址数")
+    addr_is_filtered = "办公地址总数" not in metric_map
     city_count = metric_map.get("覆盖城市数")
-    building_total = metric_map.get("楼宇库存量")
+    building_total = metric_map.get("筛选楼宇命中量") or metric_map.get("明确ID关联楼宇数") or metric_map.get("楼宇库存量")
 
     # 1. Office address scale
     if addr_total:
@@ -539,8 +554,9 @@ def build_insights(subject: Mapping[str, Any], core: Mapping[str, Any], metrics:
         except (TypeError, ValueError):
             extra = ""
         insights.append({
-            "feature": "办公地址规模",
-            "evidence": f"企业办公地址总数 {addr_total}{extra}。",
+            "feature": "筛选地区办公地址规模" if addr_is_filtered else "办公地址规模",
+            "evidence": (f"本次地区筛选命中办公地址 {addr_total}{extra}；不是企业全国办公地址总数。"
+                         if addr_is_filtered else f"企业办公地址总数 {addr_total}{extra}。"),
             "interpretation": "办公地址记录仅是公开来源线索，可用于后续核验；不能据此推断资产所有权、持续入驻、人员规模或实际经营状态。",
         })
 
@@ -567,7 +583,7 @@ def build_insights(subject: Mapping[str, Any], core: Mapping[str, Any], metrics:
                 "interpretation": "省份集中度反映企业区域战略重心：集中在少数省份意味着深耕核心市场，分散布局则利于全国拓展。省份数量越多，企业的区域辐射能力越强。",
             })
 
-    # 4. Settle type structure
+    # 4. Settle type structure (detail page scope)
     settle_rows = core.get("settle_type") or []
     if settle_rows:
         total_settle = sum(int(r.get("数量", 0)) for r in settle_rows)
@@ -575,13 +591,14 @@ def build_insights(subject: Mapping[str, Any], core: Mapping[str, Any], metrics:
             top_settle = settle_rows[0].get("入驻方式", "")
             top_count = int(settle_rows[0].get("数量", 0))
             top_pct = top_count / total_settle * 100
+            scope = "本次展示的筛选地区明细" if addr_is_filtered else "本次展示的办公地址明细"
             insights.append({
                 "feature": "入驻方式结构",
-                "evidence": f"“{top_settle}”占比约 {top_pct:.0f}%（{top_count}/{total_settle}）。",
+                "evidence": f"{scope}中，“{top_settle}”占比约 {top_pct:.0f}%（{top_count}/{total_settle}）。",
                 "interpretation": "入驻方式是公开数据源的分类标签，仅用于线索分组；不能单独证明当前实际占用或持续经营。",
             })
 
-    # 5. Source type structure
+    # 5. Source type structure (detail page scope)
     source_rows = core.get("source_type") or []
     if source_rows and len(source_rows) > 1:
         total_source = sum(int(r.get("数量", 0)) for r in source_rows)
@@ -589,13 +606,14 @@ def build_insights(subject: Mapping[str, Any], core: Mapping[str, Any], metrics:
             top_source = source_rows[0].get("地址来源", "")
             top_count = int(source_rows[0].get("数量", 0))
             top_pct = top_count / total_source * 100
+            scope = "本次展示的筛选地区明细" if addr_is_filtered else "本次展示的办公地址明细"
             insights.append({
                 "feature": "地址来源多样性",
-                "evidence": f"地址来源覆盖 {len(source_rows)} 种渠道，“{top_source}”占比约 {top_pct:.0f}%。",
-                "interpretation": "多来源地址意味着企业在工商登记、办公点、招聘等渠道均有露出，数据交叉验证度高；单一来源则覆盖面有限。",
+                "evidence": f"{scope}中，地址来源覆盖 {len(source_rows)} 种渠道，“{top_source}”占比约 {top_pct:.0f}%。",
+                "interpretation": "多来源地址意味着企业在工商登记、办公点、招聘等渠道均有露出；该比例只描述展示样本，不代表全量来源结构。",
             })
 
-    # 6. Building enterprise density
+    # 6. Building enterprise density (market filter total vs displayed sample)
     building_rows = core.get("building_query") or []
     if building_rows:
         try:
@@ -603,18 +621,23 @@ def build_insights(subject: Mapping[str, Any], core: Mapping[str, Any], metrics:
             if ent_vals:
                 avg_ent = sum(ent_vals) / len(ent_vals)
                 is_associated = any(row.get("关联依据") not in (None, "", "-") for row in building_rows)
+                if is_associated:
+                    evidence = f"办公地址明细明确关联 {len(building_rows)} 个楼盘，单楼入驻企业均值约 {avg_ent:.0f} 家。"
+                else:
+                    hit_text = f"筛选命中 {building_total} 个楼盘，" if building_total else ""
+                    evidence = f"{hit_text}本次展示 {len(building_rows)} 个；展示样本单楼入驻企业均值约 {avg_ent:.0f} 家。"
                 insights.append({
                     "feature": "关联楼宇公开入驻量" if is_associated else "楼宇承载密度",
-                    "evidence": f"命中 {len(building_rows)} 个楼盘，单楼入驻企业均值约 {avg_ent:.0f} 家。",
+                    "evidence": evidence,
                     "interpretation": ("这些楼宇均由办公地址明细中的明确楼宇ID关联；入驻企业数仅为楼宇公开统计，不证明查询企业拥有该楼宇。"
-                                       if is_associated else "楼宇入驻密度仅描述当前筛选结果，可作为区域供给线索，不能外推未返回楼宇。"),
+                                       if is_associated else "楼宇入驻密度仅描述当前展示的筛选结果，可作为区域供给线索，不能外推全部命中楼盘或未返回楼宇。"),
                 })
         except (TypeError, ValueError):
             pass
 
-    # 7. Building type structure
+    # 7. Building type structure (skip when the filter itself fixes the type)
     type_rows = core.get("building_type") or []
-    if type_rows:
+    if type_rows and not (core.get("building_query_scope") == "market_filter" and len(type_rows) == 1):
         conc = _concentration(type_rows, "楼宇类型", "数量", 2)
         if conc and conc.get("total", 0) > 1:
             insights.append({
@@ -660,11 +683,20 @@ def build_insights(subject: Mapping[str, Any], core: Mapping[str, Any], metrics:
 
 def build_abstract(subject: Mapping[str, Any], core: Mapping[str, Any], metrics: Sequence[Mapping[str, Any]], profile: Optional[Mapping[str, Any]] = None) -> str:
     name = subject.get("enterprise") or subject.get("match_raw") or "目标企业"
-    parts = [f"本报告以“{name}”为分析对象，基于楼宇/办公地址大数据，系统呈现企业办公地址详情、地址分布统计（城市/省份/入驻方式/来源）与楼宇查询明细。"]
-    if metrics:
-        kv = "、".join(f"{m['label']} {m['value']}" for m in metrics[:5])
+    has_office = bool(core.get("office_details") or core.get("office_stats"))
+    has_building = bool(core.get("building_query"))
+    parts = [f"本报告以“{name}”为分析对象，基于楼宇/办公地址大数据。"]
+    if has_office:
+        parts.append("报告呈现企业办公地址详情与地址分布统计。")
+        if has_building:
+            parts.append("另附楼宇查询明细。")
+    else:
+        parts.append("本次未获得该企业办公地址明细；报告仅呈现独立楼宇筛选结果，不据此推断企业办公布局。")
+    enterprise_metrics = [m for m in metrics if str(m.get("scope") or "") != "market"]
+    if enterprise_metrics:
+        kv = "、".join(f"{m['label']} {m['value']}" for m in enterprise_metrics[:5])
         parts.append(f"关键指标包括：{kv}。")
-    parts.append("报告同时给出办公地址规模、城市分布广度、入驻方式结构与楼宇库存的多维度解读，便于选址招商、市场分析与竞争格局研究参考。")
+    parts.append("楼宇查询结果不代表与查询企业关联；选址与招商判断需逐条核验。")
     return "".join(parts)
 
 
@@ -682,32 +714,41 @@ def build_dry_run_payload(raw: str, keyword_type: str) -> Dict[str, Any]:
     subject = {**subject, "match_raw": raw, "keywordType": keyword_type}
     core = sample.get("core_analysis") or {}
     metrics = sample.get("metrics") or []
-    return _assemble(subject, core, metrics, dry_run=True)
+    return apply_content_review(_assemble(subject, core, metrics, dry_run=True))
 
 
 # --------------------------------------------------------------------------- #
 # Assembly
 # --------------------------------------------------------------------------- #
 
+def _quality_report(core: Mapping[str, Any]) -> Dict[str, Any]:
+    """Section-fill rate from final declared sections and their actual bodies.
+
+    ``0`` is a populated body; None/''/[]/{} is empty. Not an accuracy score.
+    """
+    ca = core if isinstance(core, dict) else {}
+    sections = ca.get("sections")
+    if isinstance(sections, list):
+        total = len(sections)
+        populated = sum(1 for s in sections if isinstance(s, dict) and ca.get(s.get("key")) not in (None, "", [], {}))
+    else:
+        keys = [k for k in ca if k not in ("sections", "source_status")]
+        total = len(keys)
+        populated = sum(1 for k in keys if ca.get(k) not in (None, "", [], {}))
+    return {
+        "total_sections": total,
+        "populated_sections": populated,
+        "empty_sections": total - populated,
+        "coverage_pct": round(populated / max(1, total) * 100),
+    }
+
+
 def _assemble(subject: Mapping[str, Any], core: Mapping[str, Any], metrics: Sequence[Mapping[str, Any]], *, dry_run: bool, profile: Optional[Mapping[str, Any]] = None, tool_errors: Optional[List[str]] = None) -> Dict[str, Any]:
     abstract = build_abstract(subject, core, metrics, profile)
     records = build_records(core)
     insights = build_insights(subject, core, metrics, profile)
-    # Quality gate: count populated core-analysis sections.
-    ca = core if isinstance(core, dict) else {}
-    secs = ca.get("sections", [])
-    if secs:
-        total_secs = len(secs)
-        populated = sum(1 for s in secs if isinstance(s, dict) and ca.get(s.get("key")) not in (None, "", [], {}))
-    else:
-        total_secs = max(1, len([k for k in ca if k != "sections"]))
-        populated = sum(1 for k in ca if k != "sections" and ca.get(k) not in (None, "", [], {}))
-    quality_report = {
-        "total_sections": total_secs,
-        "populated_sections": populated,
-        "empty_sections": total_secs - populated,
-        "coverage_pct": round(populated / max(1, total_secs) * 100),
-    }
+    quality_report = _quality_report(core)
+    populated = quality_report["populated_sections"]
     if populated == 0:
         if subject.get("blocked_reason"):
             abstract = f"主体未唯一解析，已停止后续数据产品调用：{subject.get('blocked_reason')}。本报告不包含主体画像或业务结论。"
@@ -763,6 +804,120 @@ def _query_buildings_for_estates(details: Any, page_size: int = 10) -> Any:
     return {"resultList": all_buildings, "total": len(all_buildings)}
 
 
+def _review_metrics(metrics: Sequence[Mapping[str, Any]], filtered: bool) -> List[Dict[str, Any]]:
+    out: List[Dict[str, Any]] = []
+    seen = set()
+    for raw in metrics:
+        if not isinstance(raw, dict):
+            continue
+        metric = dict(raw)
+        label = str(metric.get("label") or "")
+        if filtered and label == "办公地址总数":
+            label = "筛选地区办公地址数"
+            metric["hint"] = "本次地区筛选命中的办公地址数，不是企业全国总数"
+        elif filtered and label == "覆盖省份数":
+            label = "筛选地区覆盖省份数"
+            metric["hint"] = "仅按筛选后明细去重，不代表企业全国省份覆盖"
+        elif filtered and label == "CR3城市集中度":
+            label = "全国统计CR3"
+            metric["hint"] = "全国城市统计前3合计；与筛选明细不可交叉计算"
+            metric["scope"] = "national_stats"
+        if label == "筛选楼宇命中量":
+            metric["scope"] = "market"
+        metric["label"] = label
+        if label in seen:
+            continue
+        seen.add(label)
+        out.append(metric)
+    return out
+
+
+def apply_content_review(report: Mapping[str, Any], *, source_sha256: Optional[str] = None,
+                         reviewed_at: Optional[str] = None) -> Dict[str, Any]:
+    """Rebuild building narrative content offline from an existing payload.
+
+    Uses only fields already present (office details/stats, building rows,
+    metrics, subject, generated_at). No MCP call, no new facts. Fixes filtered
+    detail counts being labelled as enterprise totals, sample-only entry/source
+    shares presented as full-population shares, market-filter hit counts written
+    as "命中 N 个楼盘", and a tautological building-type share when the query
+    itself filtered one type. Only an actual address filter changes the office
+    count to the filtered scope; a property-type-only market query does not.
+    """
+    out = copy.deepcopy(dict(report))
+    core = dict(out.get("core_analysis") or {})
+    subject = dict(out.get("subject") or {})
+    ds = dict(out.get("data_source") or {})
+    if subject.get("blocked_reason") or ds.get("blocked_reason"):
+        ds["quality_report"] = _quality_report(core)
+        ds["content_revision"] = {
+            "mode": "offline_source_preserving",
+            "source_sha256": source_sha256,
+            "original_generated_at": ds.get("generated_at"),
+            "reviewed_at": reviewed_at or dt.datetime.now().astimezone().isoformat(timespec="seconds"),
+            "scope": "主体未唯一解析/受阻报告：保留原阻断说明与空结果边界，不重算业务结论",
+        }
+        out["data_source"] = ds
+        return out
+    scope_note = str(core.get("scope_note") or "")
+    address_filtered = subject.get("address_filtered")
+    if address_filtered is None:
+        # Reports generated before the explicit flag carried the address scope
+        # only in scope_note; fall back to that same evidence.
+        address_filtered = "地区筛选" in scope_note
+    filtered = bool(address_filtered)
+    if subject.get("building_query_scope") == "independent_market_filter":
+        core["building_query_scope"] = "market_filter"
+    metrics = _review_metrics(out.get("metrics") or [], filtered)
+    quality = _quality_report(core)
+    if quality["populated_sections"] == 0:
+        # No business body: keep the assembled empty/failure narrative instead
+        # of replacing it with a generic abstract that implies sections exist.
+        out["core_analysis"] = core
+        out["metrics"] = metrics
+        ds["quality_report"] = quality
+        ds["content_revision"] = {
+            "mode": "offline_source_preserving",
+            "source_sha256": source_sha256,
+            "original_generated_at": ds.get("generated_at"),
+            "reviewed_at": reviewed_at or dt.datetime.now().astimezone().isoformat(timespec="seconds"),
+            "scope": "无有效业务章节：保留原始空结果或调用失败说明，不生成业务结论",
+        }
+        out["data_source"] = ds
+        return out
+    old_profile_insights = [i for i in (out.get("insights") or []) if isinstance(i, dict) and i.get("feature") == "企业背景概况"]
+    insights = build_insights(subject, core, metrics, profile=None)
+    if old_profile_insights and not any(i.get("feature") == "企业背景概况" for i in insights):
+        insights.extend(old_profile_insights)
+    abstract = build_abstract(subject, core, metrics, profile=None)
+    old_abstract = str(out.get("abstract") or "")
+    marker = "明细含未完整采集的来源"
+    if marker in old_abstract:
+        # attach_pagination() appends this disclosure after the review; keep it
+        # when an already-attached report is reviewed again offline.
+        abstract += old_abstract[old_abstract.index(marker):]
+    out["core_analysis"] = core
+    out["metrics"] = metrics
+    out["insights"] = insights
+    out["abstract"] = abstract
+    out["summary"] = abstract
+    gap_lines = []
+    if ds.get("tool_errors"):
+        gap_lines = ["数据缺口：" + "、".join(str(item) for item in ds["tool_errors"]) + "未成功返回，本报告仅呈现成功维度。"]
+    insight_lines = [i.get("interpretation") for i in insights][:5] or [abstract[:120]]
+    out["executive_summary"] = gap_lines + insight_lines
+    ds["quality_report"] = quality
+    ds["content_revision"] = {
+        "mode": "offline_source_preserving",
+        "source_sha256": source_sha256,
+        "original_generated_at": ds.get("generated_at"),
+        "reviewed_at": reviewed_at or dt.datetime.now().astimezone().isoformat(timespec="seconds"),
+        "scope": "区分筛选明细与全国统计口径；重算样本占比文案；未新增查询、未改写原始记录",
+    }
+    out["data_source"] = ds
+    return out
+
+
 @paid_call_scope
 def build_payload(raw: str, keyword_type: str, address: Optional[str], page_size: int, property_type: Optional[str], max_pages: int = 1) -> Dict[str, Any]:
     if isinstance(max_pages, bool) or not isinstance(max_pages, int) or max_pages < 1:
@@ -774,7 +929,7 @@ def build_payload(raw: str, keyword_type: str, address: Optional[str], page_size
         subject["blocked_reason"] = resolved.get("reason") or "企业主体未唯一解析"
         report = _assemble(subject, build_core_analysis({}, {}, {}), [], dry_run=False, profile=None)
         report["data_source"]["blocked_reason"] = subject["blocked_reason"]
-        return report
+        return apply_content_review(report)
     profile = resolved.get("profile")  # may be None for direct full-name input
 
     # If profile not captured during resolution (enterprise name was full), fetch it now
@@ -809,10 +964,13 @@ def build_payload(raw: str, keyword_type: str, address: Optional[str], page_size
     subject = build_subject(raw, resolved, keyword_type)
     market_building_query = bool(address or property_type)
     subject["building_query_scope"] = "independent_market_filter" if market_building_query else "explicit_estate_id_association"
+    # Address filtering scopes the office-address counts; a property-type-only
+    # market search leaves the enterprise office totals unfiltered.
+    subject["address_filtered"] = bool(address)
     core = build_core_analysis(details, stats, building, filtered=bool(address), market_building_query=market_building_query)
     metrics = build_metrics(details, stats, building, profile, filtered=bool(address), market_building_query=market_building_query)
-    return attach_pagination(_assemble(subject, core, metrics, dry_run=False, profile=profile, tool_errors=_failed_tools({"企业办公地址详情": details, "企业办公地址统计": stats, "楼宇查询": building})),
-                             {"办公地址明细": details, "楼宇查询": building})
+    report = apply_content_review(_assemble(subject, core, metrics, dry_run=False, profile=profile, tool_errors=_failed_tools({"企业办公地址详情": details, "企业办公地址统计": stats, "楼宇查询": building})))
+    return attach_pagination(report, {"办公地址明细": details, "楼宇查询": building})
 
 
 # --------------------------------------------------------------------------- #

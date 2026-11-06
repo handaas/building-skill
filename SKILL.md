@@ -76,6 +76,33 @@ description: Use for generating a professional building / office-address big-dat
 4. **渲染三件套**：`compose_report.py --enterprise ... --output ... --report-output ...` 直接产出 JSON + HTML + Markdown；或 `render_report.py --input ... --output ...` 重渲染。
 5. **返回路径**：返回 JSON、HTML、Markdown 文件路径，以及企业全称映射与数据口径。
 
+## 内容整理与交付审校
+
+1. **先分清三个口径**：企业办公地址明细（可被地区筛选）、企业办公地址城市统计（全国口径）、独立楼宇查询（市场筛选，不绑定企业）。三者不能相加、相除或互相证明。
+2. **筛选明细不是企业总数**：传了 `--address` 时，明细 total 只能写“筛选地区办公地址数”；省份数写“筛选地区覆盖省份数”。不得用筛选后的 8 条推导企业全国布局，也不得与全国统计的 255 条比较占比。
+3. **地址线索不是占用**：办公地址可能来自工商登记、办公地址库或招聘信息；同一地址可能只是注册地/招聘露出。保留“地址来源”和“入驻方式”，不推断所有权、租赁、实际办公或人员规模。
+4. **楼宇查询不是关联**：`building_query` 是独立地区/类型筛选，`关联依据` 为空即与企业无关；不得写成“企业旗下/入驻楼宇”或“招商资源”。命中总量与展示条数分开写，均值只描述展示样本。
+5. **不要自证**：查询已按楼宇类型筛选时，“写字楼占比 100%”是筛选条件本身，不是结构发现；单一类型时不生成类型结构结论。
+6. **重复与缺失**：同一办公地址/楼宇在明细与代表性记录中重复出现时，代表性记录只是展示子集，不增加证据；`-` 是上游未返回，不是 0，也不代表企业没有该地址。
+7. **内容整理（正常生成 + 离线修订）**：正常 `build_payload` 与 `--dry-run` 样例生成在写 JSON/HTML/MD 前自动调用 `apply_content_review(report)`；同一函数也可基于已有 JSON 重标口径、重算样本文案、抑制自证结论，不调用 MCP、不改原始记录。离线修订件写 `output/content-quality-review/<case>/`。
+
+```bash
+python - <<'PY'
+import hashlib, json, sys
+from pathlib import Path
+sys.path.insert(0, "scripts")
+import compose_report as cr
+src = Path("examples/03-guangzhou-office-filter/report.json")
+raw = src.read_bytes()
+report = cr.apply_content_review(json.loads(raw), source_sha256=hashlib.sha256(raw).hexdigest())
+out = Path("output/content-quality-review/03-guangzhou-office-filter")
+out.mkdir(parents=True, exist_ok=True)
+(out / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+PY
+```
+
+- **渲染前置检查**：执行会产出含图表 HTML / PDF 的报告命令前，先验证 `node --version` 与本 skill 自带 `assets/vendor/echarts.min.js` 存在；内嵌静态 SVG 的生成需要 Node.js（推荐当前 LTS，无需 npm 包），缺失时报告生成明确报错。查看已生成的 HTML 与 Markdown 输出不需要 Node。
+
 ## 脚本速查
 
 ```bash
@@ -128,7 +155,7 @@ python scripts/render_report.py --input output/building.json --output output/bui
 
 - `subject`：企业全称、匹配关键词、主体类型、是否自动补全。
 - `abstract` / `summary`：封面摘要与详细摘要。
-- `metrics`：办公地址总数、覆盖城市数、楼宇库存量。
+- `metrics`：办公地址总数（或筛选地区办公地址数）、覆盖城市数/筛选地区覆盖省份数、CR3城市集中度（或全国统计CR3）、明确ID关联楼宇数/筛选楼宇命中量。
 - `caliber`：匹配对象、匹配方式、数据范围、产品、局限。
 - `core_analysis`：办公地址详情（表）、办公地址统计（表）、楼宇查询明细（表）。
 - `representative_records`：代表性办公地址（地址 / 楼宇 / 入驻方式）。
